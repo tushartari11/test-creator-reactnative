@@ -10,7 +10,9 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_DIR"
 
 echo "=== Building Maven project ==="
+cd "$PROJECT_DIR/backend"
 ./mvnw clean package -DskipTests
+cd "$PROJECT_DIR"
 
 echo ""
 echo "=== Building Docker image ==="
