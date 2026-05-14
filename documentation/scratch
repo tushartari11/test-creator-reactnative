@@ -1,0 +1,9 @@
+there are two issues 1: there are 2 submit buttons. the one near the Question should be next. and when he goes to the next question the save should be done. I got failed to save answer on the chrome dev console. see the screenshot.
+
+````
+Failed to save answer: Error: Validation failed
+    at ApiClient.handleResponse (api.js:79:21)
+    at async selectOption (take-test.html?id=3:254:11)
+    ```
+2. after clicking submit test i got the toast error message. Failed to submit: User not found
+````

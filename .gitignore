@@ -1,0 +1,79 @@
+# Frontend (has its own git repo — tracked separately)
+frontend/
+
+# Screenshots (generated during testing, not source)
+docs/screenshots/
+screenshots/
+ui-variations/
+
+# Logs (rotated files)
+logs_old/
+logs-prod/
+*.log.*.gz
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+log/
+
+# Environment
+.env
+application-*.properties
+!application.yml
+!application-local.yml
+!application-test.yml
+!application-production.yml
+
+# Test
+**/test-output/
+*.class
+
+# Build
+dist/
+build/
+out/
+
+# Temporary
+*.tmp
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+backups/
+
+# Security
+**/*.pem
+**/*.key
+**/secrets/
+
+docs/logs/

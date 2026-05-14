@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: testcreator-postgres
+    environment:
+      POSTGRES_DB: testcreator
+      POSTGRES_USER: testcreator_user
+      POSTGRES_PASSWORD: testcreator_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - testcreator-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testcreator_user -d testcreator"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: testcreator-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - testcreator-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: testcreator-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: testcreator
+      DB_USERNAME: testcreator_user
+      DB_PASSWORD: testcreator_pass
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: test-creator-jwt-secret-key-for-local-development-change-in-production-at-least-32-chars
+      LOG_PATH: /app/logs
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - testcreator-network
+    profiles:
+      - full-stack
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  testcreator-network:
+    driver: bridge

@@ -1,0 +1,40 @@
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+
+  devtools:
+    restart:
+      enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.testcreator: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  file:
+    name: ${LOG_PATH:/app/logs}/test-creator.log
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+# Production settings
+app:
+  rate-limit:
+    enabled: true
+    default-limit: 1000
+    auth-limit: 5

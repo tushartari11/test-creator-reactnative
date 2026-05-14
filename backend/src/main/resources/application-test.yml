@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cache:
+    type: simple
+
+logging:
+  level:
+    root: WARN
+    com.testcreator: DEBUG
+    org.springframework.test: INFO
+
+jwt:
+  secret: test-secret-key-for-jwt-testing-purpose-only-minimum-32-characters-required
+  expiration: 3600000  # 1 hour for tests
