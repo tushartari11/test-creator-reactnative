@@ -207,9 +207,111 @@ export type AvailableTest = {
   description: string | null;
   totalQuestions: number;
   durationMinutes: number;
+  passingScore: number;
   testDate: string | null;
   alreadyAttempted: boolean;
   teacherName: string;
+  previousScore: number | null;
+  previousResult: 'PASS' | 'FAIL' | null;
+};
+
+export type QuestionOption = {
+  id: number;
+  optionNumber: number;
+  optionText: string;
+};
+
+export type QuestionWithOptionsDTO = {
+  id: number;
+  questionNumber: number;
+  questionText: string;
+  options: QuestionOption[];
+};
+
+export type StudentAnswerRecord = {
+  questionId: number;
+  selectedOption: number;
+};
+
+export type TestAttemptDTO = {
+  id: number;
+  testId: number;
+  testTitle: string;
+  studentId: number | null;
+  guestName: string | null;
+  startedAt: string;
+  expiresAt: string;
+  remainingMinutes: number;
+  totalQuestions: number;
+  answeredQuestions: number;
+  status: 'IN_PROGRESS' | 'SUBMITTED' | 'EXPIRED';
+  submitted: boolean;
+  questions: QuestionWithOptionsDTO[];
+  answers: StudentAnswerRecord[];
+};
+
+export type SubmitAnswerRequest = {
+  questionId: number;
+  selectedOption: number;
+};
+
+export type CachedAnswerDTO = {
+  questionId: number;
+  selectedOption: number;
+  cachedAt: string;
+};
+
+export type ReviewOption = {
+  optionNumber: number;
+  optionText: string;
+  isCorrect: boolean;
+  wasSelected: boolean;
+};
+
+export type ReviewQuestion = {
+  id: number;
+  questionNumber: number;
+  questionText: string;
+  explanation: string;
+  correctOption: number;
+  selectedOption: number | null;
+  isCorrect: boolean;
+  options: ReviewOption[];
+};
+
+export type TestResultDTO = {
+  attemptId: number;
+  testId: number;
+  testTitle: string;
+  totalQuestions: number;
+  answeredQuestions: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  skippedQuestions: number;
+  score: number;
+  result: 'PASS' | 'FAIL';
+  passingScore: number;
+  submittedAt: string;
+  timeTakenSeconds: number;
+  reviewQuestions: ReviewQuestion[];
+};
+
+export type GuestTestAccessDTO = {
+  guestToken: string;
+  testId: number;
+  testTitle: string;
+  guestAccessUrl: string;
+  expirationMinutes: number;
+};
+
+export type GuestTestDetailDTO = {
+  guestToken: string;
+  testId: number;
+  title: string;
+  description: string;
+  totalQuestions: number;
+  durationMinutes: number;
+  passingScore: number;
 };
 
 export type StudentResult = {
@@ -234,4 +336,37 @@ export const StudentAPI = {
     api.get('/student/tests/available', { page, size }) as Promise<PageResponse<AvailableTest>>,
   getResults: () =>
     api.get('/student/results') as Promise<StudentResultsSummary>,
+  startAttempt: (testId: number) =>
+    api.post(`/student/tests/${testId}/start`) as Promise<TestAttemptDTO>,
+  getAttemptProgress: (attemptId: number) =>
+    api.get(`/student/attempts/${attemptId}`) as Promise<TestAttemptDTO>,
+  submitAnswer: (attemptId: number, request: SubmitAnswerRequest) =>
+    api.post(`/student/attempts/${attemptId}/answer`, request) as Promise<void>,
+  autoSaveAnswer: (attemptId: number, request: SubmitAnswerRequest) =>
+    api.post(`/student/attempts/${attemptId}/autosave`, request) as Promise<void>,
+  sendHeartbeat: (attemptId: number) =>
+    api.post(`/student/attempts/${attemptId}/heartbeat`) as Promise<void>,
+  recoverCachedAnswers: (attemptId: number) =>
+    api.get(`/student/attempts/${attemptId}/recover`) as Promise<CachedAnswerDTO[]>,
+  submitTest: (attemptId: number) =>
+    api.post(`/student/attempts/${attemptId}/submit`) as Promise<TestResultDTO>,
+  getDetailedResult: (attemptId: number) =>
+    api.get(`/student/results/${attemptId}`) as Promise<TestResultDTO>,
+};
+
+export const GuestAPI = {
+  validateAccessCode: (accessCode: string) =>
+    api.get(`/guest/access/${accessCode}`, {}, false) as Promise<GuestTestAccessDTO>,
+  getTestDetail: (guestToken: string) =>
+    api.get(`/guest/tests/${guestToken}`, {}, false) as Promise<GuestTestDetailDTO>,
+  startAttempt: (guestToken: string, guestName: string) =>
+    api.post(`/guest/tests/${guestToken}/start`, { guestName }, false) as Promise<TestAttemptDTO>,
+  getAttemptState: (attemptId: number) =>
+    api.get(`/guest/attempts/${attemptId}`, {}, false) as Promise<TestAttemptDTO>,
+  submitAnswer: (attemptId: number, questionId: number, selectedOptionId: number) =>
+    api.post(`/guest/attempts/${attemptId}/answer`, { questionId, selectedOptionId }, false) as Promise<void>,
+  submitTest: (attemptId: number) =>
+    api.post(`/guest/attempts/${attemptId}/submit`, {}, false) as Promise<TestResultDTO>,
+  invalidateSession: (guestToken: string) =>
+    api.delete(`/guest/sessions/${guestToken}`, false) as Promise<null>,
 };
