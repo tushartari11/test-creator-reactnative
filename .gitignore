@@ -1,5 +1,7 @@
-# Frontend (has its own git repo — tracked separately)
-frontend/
+# Claude Code plugin data and local settings
+.agents/
+.claude/settings.local.json
+.playwright-mcp/
 
 # Screenshots (generated during testing, not source)
 docs/screenshots/
@@ -77,3 +79,4 @@ backups/
 **/secrets/
 
 docs/logs/
+documentation/
