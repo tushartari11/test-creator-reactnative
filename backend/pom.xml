@@ -192,8 +192,8 @@
                     <target>21</target>
                 </configuration>
             </plugin>
-
-            <!-- JaCoCo Code Coverage -->
+            <!--
+            JaCoCo Code Coverage 
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -233,7 +233,7 @@
                     </execution>
                 </executions>
             </plugin>
-
+            -->
             <!-- Flyway Maven Plugin -->
             <plugin>
                 <groupId>org.flywaydb</groupId>
