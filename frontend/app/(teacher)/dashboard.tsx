@@ -203,21 +203,21 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID="teacher-dashboard">
       {/* Top bar */}
       <View style={styles.topBar}>
-        <Text style={styles.logo}>Test Creator</Text>
+        <Text style={styles.logo} testID="teacher-dashboard-logo">Test Creator</Text>
         <View style={styles.topBarRight}>
           {isMedium && (
             <TouchableOpacity onPress={() => {}} style={styles.topBarLink}>
               <Text style={styles.topBarLinkText}>Dashboard</Text>
             </TouchableOpacity>
           )}
-          <Text style={styles.topBarUser}>{user?.name}</Text>
+          <Text style={styles.topBarUser} testID="teacher-dashboard-user-name">{user?.name}</Text>
           <View style={styles.roleBadge}>
-            <Text style={styles.roleBadgeText}>TEACHER</Text>
+            <Text style={styles.roleBadgeText} testID="teacher-dashboard-role-badge">TEACHER</Text>
           </View>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+          <TouchableOpacity testID="teacher-dashboard-logout" onPress={handleLogout} style={styles.logoutBtn}>
             <Text style={styles.logoutBtnText}>Logout</Text>
           </TouchableOpacity>
         </View>

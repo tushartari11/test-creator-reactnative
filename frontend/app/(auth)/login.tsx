@@ -59,10 +59,10 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.card, isMedium && styles.cardMedium]}>
+        <View style={[styles.card, isMedium && styles.cardMedium]} testID="login-card">
           {/* Header */}
           <View style={styles.cardHeader}>
-            <Text style={styles.heading}>Welcome Back</Text>
+            <Text style={styles.heading} testID="login-heading">Welcome Back</Text>
             <Text style={styles.subheading}>Sign in to your account</Text>
           </View>
           <View style={styles.divider} />
@@ -72,6 +72,7 @@ export default function LoginScreen() {
             <View style={styles.field}>
               <Text style={styles.label}>Email</Text>
               <TextInput
+                testID="login-email"
                 style={styles.input}
                 placeholder="Enter your email"
                 placeholderTextColor={C.TEXT_SEC}
@@ -90,6 +91,7 @@ export default function LoginScreen() {
               <Text style={styles.label}>Password</Text>
               <TextInput
                 ref={passwordRef}
+                testID="login-password"
                 style={styles.input}
                 placeholder="Enter your password"
                 placeholderTextColor={C.TEXT_SEC}
@@ -102,6 +104,7 @@ export default function LoginScreen() {
             </View>
 
             <TouchableOpacity
+              testID="login-submit"
               style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
               onPress={handleSubmit}
               disabled={loading}
@@ -113,7 +116,7 @@ export default function LoginScreen() {
               }
             </TouchableOpacity>
 
-            {!!error && <Text style={styles.errorText}>{error}</Text>}
+            {!!error && <Text testID="login-error" style={styles.errorText}>{error}</Text>}
 
             <View style={styles.orRow}>
               <View style={styles.orLine} />
@@ -123,7 +126,7 @@ export default function LoginScreen() {
 
             <Text style={styles.footerText}>
               Don&apos;t have an account?{' '}
-              <Text style={styles.link} onPress={() => router.push('/(auth)/register')}>
+              <Text testID="login-register-link" style={styles.link} onPress={() => router.push('/(auth)/register')}>
                 Create one
               </Text>
             </Text>
