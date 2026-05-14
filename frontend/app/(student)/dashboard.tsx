@@ -85,7 +85,7 @@ export default function StudentDashboard() {
             ) : (
               <TouchableOpacity
                 style={styles.takeBtn}
-                onPress={() => comingSoon('Take Test')}
+                onPress={() => router.push({ pathname: '/(student)/take-test', params: { testId: test.id } })}
                 activeOpacity={0.8}
               >
                 <Text style={styles.takeBtnText}>Take Test</Text>
@@ -113,7 +113,7 @@ export default function StudentDashboard() {
         {!test.alreadyAttempted && (
           <TouchableOpacity
             style={styles.takeBtn}
-            onPress={() => comingSoon('Take Test')}
+            onPress={() => router.push({ pathname: '/(student)/take-test', params: { testId: test.id } })}
             activeOpacity={0.8}
           >
             <Text style={styles.takeBtnText}>Take Test</Text>
