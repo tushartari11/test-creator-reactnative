@@ -1,0 +1,43 @@
+# Spring profile used by Playwright E2E test suite.
+# Points at an ISOLATED database. Activating this profile against a production
+# datasource will cause startup to fail (TestSupportStartupGuard).
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${E2E_DB_NAME:testcreator_e2e}
+    username: ${DB_USERNAME:testcreator_user}
+    password: ${DB_PASSWORD:changeme}
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${E2E_REDIS_DB:1}   # logical DB 1 — keeps dev/prod (DB 0) untouched
+
+  cache:
+    type: redis
+
+jwt:
+  secret: ${JWT_SECRET:e2e-secret-key-for-jwt-testing-purpose-only-minimum-32-characters-required}
+  expiration: 3600000   # 1 hour — tests finish quickly
+
+app:
+  test-support:
+    enabled: true
+    allowed-db-url-suffix: "_e2e"
+    scenario-ttl: PT1H
+    sweeper-interval-ms: 900000   # 15 min
+  rate-limit:
+    enabled: false                # tests blow through rate limits
+
+logging:
+  level:
+    root: WARN
+    com.testcreator: INFO
+    com.testcreator.testsupport: DEBUG
+    org.springframework.web: WARN
+    org.flywaydb: INFO
