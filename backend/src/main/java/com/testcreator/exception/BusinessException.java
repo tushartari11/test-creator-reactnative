@@ -6,19 +6,20 @@ package com.testcreator.exception;
  * <p>HTTP Status: 409 CONFLICT
  *
  * <p>Examples:
+ *
  * <ul>
- *   <li>Cannot delete test with existing attempts</li>
- *   <li>Cannot update published test</li>
- *   <li>Student already attempted this test</li>
+ *   <li>Cannot delete test with existing attempts
+ *   <li>Cannot update published test
+ *   <li>Student already attempted this test
  * </ul>
  */
 public class BusinessException extends RuntimeException {
 
-    public BusinessException(String message) {
-        super(message);
-    }
+  public BusinessException(String message) {
+    super(message);
+  }
 
-    public BusinessException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public BusinessException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

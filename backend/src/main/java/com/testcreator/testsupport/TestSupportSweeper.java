@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Reclaims scenarios whose cleanup never arrived (process killed, network
- * partition, etc.). Without this a long-running e2e server would leak rows.
+ * Reclaims scenarios whose cleanup never arrived (process killed, network partition, etc.). Without
+ * this a long-running e2e server would leak rows.
  */
 @Component
 @Profile("e2e")
@@ -17,15 +17,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class TestSupportSweeper {
 
-    private final TestSupportService service;
-    private final TestSupportProperties props;
+  private final TestSupportService service;
+  private final TestSupportProperties props;
 
-    @Scheduled(fixedDelayString = "${app.test-support.sweeper-interval-ms:900000}")
-    public void sweep() {
-        Instant cutoff = Instant.now().minus(props.getScenarioTtl());
-        int swept = service.sweepStale(cutoff);
-        if (swept > 0) {
-            log.warn("Sweeper reclaimed {} stale scenario(s) older than {}", swept, props.getScenarioTtl());
-        }
+  @Scheduled(fixedDelayString = "${app.test-support.sweeper-interval-ms:900000}")
+  public void sweep() {
+    Instant cutoff = Instant.now().minus(props.getScenarioTtl());
+    int swept = service.sweepStale(cutoff);
+    if (swept > 0) {
+      log.warn(
+          "Sweeper reclaimed {} stale scenario(s) older than {}", swept, props.getScenarioTtl());
     }
+  }
 }

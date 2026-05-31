@@ -14,9 +14,9 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * Profile-guarded security filter chain for the /api/test-support/** surface.
  *
- * <p>Loaded only when the {@code e2e} profile is active. Spring Security picks
- * the first matching chain by {@link Order}, so this runs before the main
- * SecurityConfig and bypasses JWT auth for the test-support endpoints.
+ * <p>Loaded only when the {@code e2e} profile is active. Spring Security picks the first matching
+ * chain by {@link Order}, so this runs before the main SecurityConfig and bypasses JWT auth for the
+ * test-support endpoints.
  *
  * <p>The main SecurityConfig is intentionally untouched.
  */
@@ -25,14 +25,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @Profile("e2e")
 public class TestSupportSecurityConfig {
 
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
-    SecurityFilterChain testSupportFilterChain(HttpSecurity http) throws Exception {
-        http
-            .securityMatcher("/api/test-support/**")
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
-        return http.build();
-    }
+  @Bean
+  @Order(Ordered.HIGHEST_PRECEDENCE)
+  SecurityFilterChain testSupportFilterChain(HttpSecurity http) throws Exception {
+    http.securityMatcher("/api/test-support/**")
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+    return http.build();
+  }
 }

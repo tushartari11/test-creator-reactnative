@@ -17,8 +17,7 @@ import lombok.NoArgsConstructor;
 /**
  * DTO for creating or updating a test.
  *
- * <p>
- * Used in POST and PUT endpoints for test management.
+ * <p>Used in POST and PUT endpoints for test management.
  */
 @Data
 @Builder

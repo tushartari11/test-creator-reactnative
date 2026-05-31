@@ -221,7 +221,7 @@ export type QuestionOption = {
   optionText: string;
 };
 
-export type QuestionWithOptionsDTO = {
+export type QuestionWithOptionsDto = {
   id: number;
   questionNumber: number;
   questionText: string;
@@ -233,7 +233,7 @@ export type StudentAnswerRecord = {
   selectedOption: number;
 };
 
-export type TestAttemptDTO = {
+export type TestAttemptDto = {
   id: number;
   testId: number;
   testTitle: string;
@@ -246,7 +246,7 @@ export type TestAttemptDTO = {
   answeredQuestions: number;
   status: 'IN_PROGRESS' | 'SUBMITTED' | 'EXPIRED';
   submitted: boolean;
-  questions: QuestionWithOptionsDTO[];
+  questions: QuestionWithOptionsDto[];
   answers: StudentAnswerRecord[];
 };
 
@@ -255,7 +255,7 @@ export type SubmitAnswerRequest = {
   selectedOption: number;
 };
 
-export type CachedAnswerDTO = {
+export type CachedAnswerDto = {
   questionId: number;
   selectedOption: number;
   cachedAt: string;
@@ -279,7 +279,7 @@ export type ReviewQuestion = {
   options: ReviewOption[];
 };
 
-export type TestResultDTO = {
+export type TestResultDto = {
   attemptId: number;
   testId: number;
   testTitle: string;
@@ -296,7 +296,7 @@ export type TestResultDTO = {
   reviewQuestions: ReviewQuestion[];
 };
 
-export type GuestTestAccessDTO = {
+export type GuestTestAccessDto = {
   guestToken: string;
   testId: number;
   testTitle: string;
@@ -304,7 +304,7 @@ export type GuestTestAccessDTO = {
   expirationMinutes: number;
 };
 
-export type GuestTestDetailDTO = {
+export type GuestTestDetailDto = {
   guestToken: string;
   testId: number;
   title: string;
@@ -337,9 +337,9 @@ export const StudentAPI = {
   getResults: () =>
     api.get('/student/results') as Promise<StudentResultsSummary>,
   startAttempt: (testId: number) =>
-    api.post(`/student/tests/${testId}/start`) as Promise<TestAttemptDTO>,
+    api.post(`/student/tests/${testId}/start`) as Promise<TestAttemptDto>,
   getAttemptProgress: (attemptId: number) =>
-    api.get(`/student/attempts/${attemptId}`) as Promise<TestAttemptDTO>,
+    api.get(`/student/attempts/${attemptId}`) as Promise<TestAttemptDto>,
   submitAnswer: (attemptId: number, request: SubmitAnswerRequest) =>
     api.post(`/student/attempts/${attemptId}/answer`, request) as Promise<void>,
   autoSaveAnswer: (attemptId: number, request: SubmitAnswerRequest) =>
@@ -347,11 +347,11 @@ export const StudentAPI = {
   sendHeartbeat: (attemptId: number) =>
     api.post(`/student/attempts/${attemptId}/heartbeat`) as Promise<void>,
   recoverCachedAnswers: (attemptId: number) =>
-    api.get(`/student/attempts/${attemptId}/recover`) as Promise<CachedAnswerDTO[]>,
+    api.get(`/student/attempts/${attemptId}/recover`) as Promise<CachedAnswerDto[]>,
   submitTest: (attemptId: number) =>
-    api.post(`/student/attempts/${attemptId}/submit`) as Promise<TestResultDTO>,
+    api.post(`/student/attempts/${attemptId}/submit`) as Promise<TestResultDto>,
   getDetailedResult: (attemptId: number) =>
-    api.get(`/student/results/${attemptId}`) as Promise<TestResultDTO>,
+    api.get(`/student/results/${attemptId}`) as Promise<TestResultDto>,
 };
 
 export type StudentAttemptSummary = {
@@ -383,17 +383,17 @@ export const AnalyticsAPI = {
 
 export const GuestAPI = {
   validateAccessCode: (accessCode: string) =>
-    api.get(`/guest/access/${accessCode}`, {}, false) as Promise<GuestTestAccessDTO>,
+    api.get(`/guest/access/${accessCode}`, {}, false) as Promise<GuestTestAccessDto>,
   getTestDetail: (guestToken: string) =>
-    api.get(`/guest/tests/${guestToken}`, {}, false) as Promise<GuestTestDetailDTO>,
+    api.get(`/guest/tests/${guestToken}`, {}, false) as Promise<GuestTestDetailDto>,
   startAttempt: (guestToken: string, guestName: string) =>
-    api.post(`/guest/tests/${guestToken}/start`, { guestName }, false) as Promise<TestAttemptDTO>,
+    api.post(`/guest/tests/${guestToken}/start`, { guestName }, false) as Promise<TestAttemptDto>,
   getAttemptState: (attemptId: number) =>
-    api.get(`/guest/attempts/${attemptId}`, {}, false) as Promise<TestAttemptDTO>,
+    api.get(`/guest/attempts/${attemptId}`, {}, false) as Promise<TestAttemptDto>,
   submitAnswer: (attemptId: number, questionId: number, selectedOptionId: number) =>
     api.post(`/guest/attempts/${attemptId}/answer`, { questionId, selectedOptionId }, false) as Promise<void>,
   submitTest: (attemptId: number) =>
-    api.post(`/guest/attempts/${attemptId}/submit`, {}, false) as Promise<TestResultDTO>,
+    api.post(`/guest/attempts/${attemptId}/submit`, {}, false) as Promise<TestResultDto>,
   invalidateSession: (guestToken: string) =>
     api.delete(`/guest/sessions/${guestToken}`, false) as Promise<null>,
 };

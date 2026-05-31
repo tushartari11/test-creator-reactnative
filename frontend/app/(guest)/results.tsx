@@ -1,12 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { TestResultDTO } from '../../src/lib/api';
+import { TestResultDto } from '../../src/lib/api';
 import { C } from '../../src/lib/theme';
 
 export default function GuestResults() {
   const { resultData } = useLocalSearchParams<{ resultData: string }>();
 
-  const result: TestResultDTO | null = (() => {
+  const result: TestResultDto | null = (() => {
     try { return resultData ? JSON.parse(resultData) : null; } catch { return null; }
   })();
 

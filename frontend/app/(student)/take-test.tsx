@@ -31,10 +31,10 @@ function showAlert(
   }
 }
 import {
-  CachedAnswerDTO,
-  QuestionWithOptionsDTO,
+  CachedAnswerDto,
+  QuestionWithOptionsDto,
   StudentAPI,
-  TestAttemptDTO,
+  TestAttemptDto,
 } from '../../src/lib/api';
 import { AUTO_SAVE_INTERVAL, HEARTBEAT_INTERVAL, TIMER_DANGER, TIMER_WARNING } from '../../src/lib/config';
 import { C } from '../../src/lib/theme';
@@ -45,7 +45,7 @@ export default function TakeTest() {
   const isMedium = width > 768;
 
   const [attemptId, setAttemptId] = useState<number | null>(null);
-  const [questions, setQuestions] = useState<QuestionWithOptionsDTO[]>([]);
+  const [questions, setQuestions] = useState<QuestionWithOptionsDto[]>([]);
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -81,13 +81,13 @@ export default function TakeTest() {
 
     (async () => {
       try {
-        const attempt: TestAttemptDTO = await StudentAPI.startAttempt(Number(testId));
+        const attempt: TestAttemptDto = await StudentAPI.startAttempt(Number(testId));
         setAttemptId(attempt.id);
         setQuestions(attempt.questions);
         setTestTitle(attempt.testTitle);
         setRemainingSeconds(Math.max(0, attempt.remainingMinutes * 60));
 
-        const cached: CachedAnswerDTO[] = await StudentAPI.recoverCachedAnswers(attempt.id);
+        const cached: CachedAnswerDto[] = await StudentAPI.recoverCachedAnswers(attempt.id);
         if (cached.length > 0) {
           const recovered = new Map<number, number>();
           cached.forEach(c => recovered.set(c.questionId, c.selectedOption));

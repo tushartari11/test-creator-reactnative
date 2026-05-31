@@ -1,6 +1,6 @@
 package com.testcreator.service;
 
-import com.testcreator.dto.student.TestResultDTO;
+import com.testcreator.dto.student.TestResultDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.Question;
 import com.testcreator.entity.ResultStatus;
@@ -25,13 +25,13 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service for calculating test results and scores.
  *
- * <p>
- * Handles score calculation, result determination, and analytics.
+ * <p>Handles score calculation, result determination, and analytics.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
+@SuppressWarnings("checkstyle:AbbreviationAsWordInNameCheck")
 public class ResultService {
 
   private final StudentAnswerRepository studentAnswerRepository;
@@ -44,7 +44,7 @@ public class ResultService {
    * @param attempt the test attempt
    * @return test result with score and detailed analysis
    */
-  public TestResultDTO calculateResult(TestAttempt attempt) {
+  public TestResultDto calculateResult(TestAttempt attempt) {
     log.info("Calculating result for attempt: {}", attempt.getId());
 
     Test test = attempt.getTest();
@@ -55,14 +55,15 @@ public class ResultService {
     int wrongCount = 0;
     int skippedCount = test.getTotalQuestions() - answers.size();
 
-    List<TestResultDTO.ReviewQuestionDTO> reviewQuestions = new ArrayList<>();
+    List<TestResultDto.ReviewQuestionDto> reviewQuestions = new ArrayList<>();
 
     for (Question question : test.getQuestions()) {
       // Find student's answer for this question
-      StudentAnswer studentAnswer = answers.stream()
-          .filter(a -> a.getQuestion().getId().equals(question.getId()))
-          .findFirst()
-          .orElse(null);
+      StudentAnswer studentAnswer =
+          answers.stream()
+              .filter(a -> a.getQuestion().getId().equals(question.getId()))
+              .findFirst()
+              .orElse(null);
 
       int selectedOption = studentAnswer != null ? studentAnswer.getSelectedOption() : 0;
       boolean isCorrect = selectedOption == question.getCorrectOptionNumber();
@@ -78,25 +79,30 @@ public class ResultService {
       }
 
       // Build review question with answer
-      List<TestResultDTO.ReviewOptionDTO> optionDTOs = question.getOptions().stream()
-          .map(option -> TestResultDTO.ReviewOptionDTO.builder()
-              .optionNumber(option.getOptionNumber())
-              .optionText(option.getOptionText())
-              .isCorrect(option.getOptionNumber().equals(question.getCorrectOptionNumber()))
-              .wasSelected(option.getOptionNumber().equals(selectedOption))
-              .build())
-          .collect(Collectors.toList());
+      List<TestResultDto.ReviewOptionDto> optionDtos =
+          question.getOptions().stream()
+              .map(
+                  option ->
+                      TestResultDto.ReviewOptionDto.builder()
+                          .optionNumber(option.getOptionNumber())
+                          .optionText(option.getOptionText())
+                          .isCorrect(
+                              option.getOptionNumber().equals(question.getCorrectOptionNumber()))
+                          .wasSelected(option.getOptionNumber().equals(selectedOption))
+                          .build())
+              .collect(Collectors.toList());
 
-      TestResultDTO.ReviewQuestionDTO reviewQuestion = TestResultDTO.ReviewQuestionDTO.builder()
-          .id(question.getId())
-          .questionNumber(question.getQuestionNumber())
-          .questionText(question.getQuestionText())
-          .explanation(question.getExplanation())
-          .correctOption(question.getCorrectOptionNumber())
-          .selectedOption(selectedOption > 0 ? selectedOption : null)
-          .isCorrect(isCorrect)
-          .options(optionDTOs)
-          .build();
+      TestResultDto.ReviewQuestionDto reviewQuestion =
+          TestResultDto.ReviewQuestionDto.builder()
+              .id(question.getId())
+              .questionNumber(question.getQuestionNumber())
+              .questionText(question.getQuestionText())
+              .explanation(question.getExplanation())
+              .correctOption(question.getCorrectOptionNumber())
+              .selectedOption(selectedOption > 0 ? selectedOption : null)
+              .isCorrect(isCorrect)
+              .options(optionDtos)
+              .build();
 
       reviewQuestions.add(reviewQuestion);
     }
@@ -115,26 +121,27 @@ public class ResultService {
     }
 
     // Build result DTO
-    TestResultDTO resultDTO = TestResultDTO.builder()
-        .attemptId(attempt.getId())
-        .testId(test.getId())
-        .testTitle(test.getTitle())
-        .totalQuestions(test.getTotalQuestions())
-        .answeredQuestions(answers.size())
-        .correctAnswers(correctCount)
-        .wrongAnswers(wrongCount)
-        .skippedQuestions(skippedCount)
-        .score(score)
-        .result(result)
-        .passingScore(test.getPassingScore())
-        .submittedAt(attempt.getSubmittedAt())
-        .timeTakenSeconds((int) secondsTaken)
-        .reviewQuestions(reviewQuestions)
-        .build();
+    TestResultDto resultDto =
+        TestResultDto.builder()
+            .attemptId(attempt.getId())
+            .testId(test.getId())
+            .testTitle(test.getTitle())
+            .totalQuestions(test.getTotalQuestions())
+            .answeredQuestions(answers.size())
+            .correctAnswers(correctCount)
+            .wrongAnswers(wrongCount)
+            .skippedQuestions(skippedCount)
+            .score(score)
+            .result(result)
+            .passingScore(test.getPassingScore())
+            .submittedAt(attempt.getSubmittedAt())
+            .timeTakenSeconds((int) secondsTaken)
+            .reviewQuestions(reviewQuestions)
+            .build();
 
     log.info("Result calculated - Score: {}, Result: {}", score, result);
 
-    return resultDTO;
+    return resultDto;
   }
 
   /**
@@ -143,7 +150,7 @@ public class ResultService {
    * @param attempt the submitted attempt
    * @return detailed test result
    */
-  public TestResultDTO getDetailedResult(TestAttempt attempt) {
+  public TestResultDto getDetailedResult(TestAttempt attempt) {
     return calculateResult(attempt);
   }
 
@@ -156,25 +163,26 @@ public class ResultService {
   public Map<String, Object> getTestAnalytics(Test test) {
     log.info("Calculating analytics for test: {}", test.getId());
 
-    List<TestAttempt> submittedAttempts = testAttemptRepository
-        .findByTestId(test.getId(), PageRequest.of(0, Integer.MAX_VALUE))
-        .stream()
-        .filter(a -> a.getStatus() == AttemptStatus.SUBMITTED)
-        .collect(Collectors.toList());
+    List<TestAttempt> submittedAttempts =
+        testAttemptRepository
+            .findByTestId(test.getId(), PageRequest.of(0, Integer.MAX_VALUE))
+            .stream()
+            .filter(a -> a.getStatus() == AttemptStatus.SUBMITTED)
+            .collect(Collectors.toList());
 
     if (submittedAttempts.isEmpty()) {
       return new HashMap<>();
     }
 
     // Calculate statistics
-    double averageScore = submittedAttempts.stream()
-        .mapToDouble(a -> a.getScore() != null ? a.getScore() : 0)
-        .average()
-        .orElse(0);
+    double averageScore =
+        submittedAttempts.stream()
+            .mapToDouble(a -> a.getScore() != null ? a.getScore() : 0)
+            .average()
+            .orElse(0);
 
-    long passCount = submittedAttempts.stream()
-        .filter(a -> a.getResult() == ResultStatus.PASS)
-        .count();
+    long passCount =
+        submittedAttempts.stream().filter(a -> a.getResult() == ResultStatus.PASS).count();
 
     double passPercentage = (double) passCount / submittedAttempts.size() * 100;
 
