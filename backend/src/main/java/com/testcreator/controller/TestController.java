@@ -2,9 +2,9 @@ package com.testcreator.controller;
 
 import com.testcreator.dto.test.CreateTestRequest;
 import com.testcreator.dto.test.ImportTestResponse;
-import com.testcreator.dto.test.TestDTO;
-import com.testcreator.dto.test.TestDetailDTO;
-import com.testcreator.dto.test.TestListDTO;
+import com.testcreator.dto.test.TestDto;
+import com.testcreator.dto.test.TestDetailDto;
+import com.testcreator.dto.test.TestListDto;
 import com.testcreator.service.TestAttemptService;
 import com.testcreator.service.TestService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -99,7 +99,7 @@ public class TestController {
     @ApiResponse(
         responseCode = "201",
         description = "Test created successfully",
-        content = @Content(schema = @Schema(implementation = TestDTO.class))),
+        content = @Content(schema = @Schema(implementation = TestDto.class))),
     @ApiResponse(responseCode = "400", description = "Invalid input (validation error)"),
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "403", description = "Only teachers can create tests")
@@ -130,7 +130,7 @@ public class TestController {
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  public ResponseEntity<Page<TestListDTO>> getAllTests(
+  public ResponseEntity<Page<TestListDto>> getAllTests(
       @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0)
           int page,
       @Parameter(description = "Page size (max 100)")
@@ -152,7 +152,7 @@ public class TestController {
     Sort.Direction sortDir = Sort.Direction.fromString(direction.toUpperCase());
     Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir, sort));
 
-    Page<TestListDTO> tests = testService.getAllTestsByTeacher(pageable, status);
+    Page<TestListDto> tests = testService.getAllTestsByTeacher(pageable, status);
     return ResponseEntity.ok(tests);
   }
 
@@ -173,11 +173,11 @@ public class TestController {
     @ApiResponse(responseCode = "403", description = "Cannot access this test"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestDetailDTO> getTestById(
+  public ResponseEntity<TestDetailDto> getTestById(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     log.info("Get test details request - testId: {}", testId);
-    TestDetailDTO testDetails = testService.getTestById(testId);
+    TestDetailDto testDetails = testService.getTestById(testId);
     return ResponseEntity.ok(testDetails);
   }
 
@@ -201,12 +201,12 @@ public class TestController {
     @ApiResponse(responseCode = "403", description = "Cannot update this test"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestDTO> updateTest(
+  public ResponseEntity<TestDto> updateTest(
       @Parameter(description = "Test ID") @PathVariable Long testId,
       @Valid @RequestBody CreateTestRequest request) {
 
     log.info("Update test request - testId: {}", testId);
-    TestDTO updatedTest = testService.updateTest(testId, request);
+    TestDto updatedTest = testService.updateTest(testId, request);
     return ResponseEntity.ok(updatedTest);
   }
 
@@ -229,11 +229,11 @@ public class TestController {
     @ApiResponse(responseCode = "403", description = "Cannot publish this test"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestDTO> publishTest(
+  public ResponseEntity<TestDto> publishTest(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     log.info("Publish test request - testId: {}", testId);
-    TestDTO publishedTest = testService.publishTest(testId);
+    TestDto publishedTest = testService.publishTest(testId);
     return ResponseEntity.ok(publishedTest);
   }
 
@@ -253,11 +253,11 @@ public class TestController {
     @ApiResponse(responseCode = "403", description = "Cannot archive this test"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestDTO> archiveTest(
+  public ResponseEntity<TestDto> archiveTest(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     log.info("Archive test request - testId: {}", testId);
-    TestDTO archivedTest = testService.archiveTest(testId);
+    TestDto archivedTest = testService.archiveTest(testId);
     return ResponseEntity.ok(archivedTest);
   }
 
@@ -277,11 +277,11 @@ public class TestController {
     @ApiResponse(responseCode = "403", description = "Cannot modify this test"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestDTO> generateAccessCode(
+  public ResponseEntity<TestDto> generateAccessCode(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     log.info("Generate access code request - testId: {}", testId);
-    TestDTO updatedTest = testService.generateAccessCode(testId);
+    TestDto updatedTest = testService.generateAccessCode(testId);
     return ResponseEntity.ok(updatedTest);
   }
 

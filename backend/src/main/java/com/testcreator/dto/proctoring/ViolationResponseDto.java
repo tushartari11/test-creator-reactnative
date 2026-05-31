@@ -46,8 +46,8 @@ public class ViolationResponseDto {
   private Integer remainingAttempts;
 
   /** Creates a simple acknowledgment response. */
-  public static ViolationResponseDTO acknowledged() {
-    return ViolationResponseDTO.builder()
+  public static ViolationResponseDto acknowledged() {
+    return ViolationResponseDto.builder()
         .recorded(true)
         .showWarning(false)
         .forceSubmit(false)
@@ -55,9 +55,9 @@ public class ViolationResponseDto {
   }
 
   /** Creates a warning response. */
-  public static ViolationResponseDTO warning(
+  public static ViolationResponseDto warning(
       String message, long totalViolations, int remainingAttempts) {
-    return ViolationResponseDTO.builder()
+    return ViolationResponseDto.builder()
         .recorded(true)
         .showWarning(true)
         .warningMessage(message)
@@ -68,9 +68,9 @@ public class ViolationResponseDto {
   }
 
   /** Creates a force submit response. */
-  public static ViolationResponseDTO forceSubmit(
+  public static ViolationResponseDto forceSubmit(
       String reason, long totalViolations, long criticalViolations) {
-    return ViolationResponseDTO.builder()
+    return ViolationResponseDto.builder()
         .recorded(true)
         .showWarning(true)
         .warningMessage("Your test is being submitted due to proctoring violations.")

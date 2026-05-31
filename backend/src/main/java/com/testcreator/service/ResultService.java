@@ -1,6 +1,6 @@
 package com.testcreator.service;
 
-import com.testcreator.dto.student.TestResultDTO;
+import com.testcreator.dto.student.TestResultDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.Question;
 import com.testcreator.entity.ResultStatus;
@@ -44,7 +44,7 @@ public class ResultService {
    * @param attempt the test attempt
    * @return test result with score and detailed analysis
    */
-  public TestResultDTO calculateResult(TestAttempt attempt) {
+  public TestResultDto calculateResult(TestAttempt attempt) {
     log.info("Calculating result for attempt: {}", attempt.getId());
 
     Test test = attempt.getTest();
@@ -55,7 +55,7 @@ public class ResultService {
     int wrongCount = 0;
     int skippedCount = test.getTotalQuestions() - answers.size();
 
-    List<TestResultDTO.ReviewQuestionDto> reviewQuestions = new ArrayList<>();
+    List<TestResultDto.ReviewQuestionDto> reviewQuestions = new ArrayList<>();
 
     for (Question question : test.getQuestions()) {
       // Find student's answer for this question
@@ -150,7 +150,7 @@ public class ResultService {
    * @param attempt the submitted attempt
    * @return detailed test result
    */
-  public TestResultDTO getDetailedResult(TestAttempt attempt) {
+  public TestResultDto getDetailedResult(TestAttempt attempt) {
     return calculateResult(attempt);
   }
 

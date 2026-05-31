@@ -1,6 +1,6 @@
 package com.testcreator.service;
 
-import com.testcreator.dto.student.CachedAnswerDTO;
+import com.testcreator.dto.student.CachedAnswerDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.TestAttempt;
 import com.testcreator.repository.StudentAnswerRepository;
@@ -65,7 +65,7 @@ public class AnswerSyncService {
    */
   @Transactional
   public int syncAttemptAnswers(Long attemptId) {
-    List<CachedAnswerDTO> unsyncedAnswers = answerCacheService.getUnsyncedAnswers(attemptId);
+    List<CachedAnswerDto> unsyncedAnswers = answerCacheService.getUnsyncedAnswers(attemptId);
 
     if (unsyncedAnswers.isEmpty()) {
       return 0;
@@ -103,7 +103,7 @@ public class AnswerSyncService {
   }
 
   /** Saves or updates a single answer to the database. */
-  private void saveAnswerToDatabase(TestAttempt attempt, CachedAnswerDTO cached) {
+  private void saveAnswerToDatabase(TestAttempt attempt, CachedAnswerDto cached) {
     // Atomic upsert — avoids duplicate key race condition
     studentAnswerRepository.upsertAnswer(
         attempt.getId(),
@@ -122,14 +122,14 @@ public class AnswerSyncService {
   public void syncAllBeforeSubmit(Long attemptId) {
     log.info("Syncing all answers before submit for attempt: {}", attemptId);
 
-    List<CachedAnswerDTO> allCachedAnswers = answerCacheService.getAllCachedAnswers(attemptId);
+    List<CachedAnswerDto> allCachedAnswers = answerCacheService.getAllCachedAnswers(attemptId);
 
     TestAttempt attempt = testAttemptRepository.findById(attemptId).orElse(null);
     if (attempt == null) {
       return;
     }
 
-    for (CachedAnswerDTO cached : allCachedAnswers) {
+    for (CachedAnswerDto cached : allCachedAnswers) {
       try {
         saveAnswerToDatabase(attempt, cached);
       } catch (Exception e) {
@@ -148,7 +148,7 @@ public class AnswerSyncService {
    * @param attemptId test attempt ID
    * @return list of cached answers
    */
-  public List<CachedAnswerDTO> recoverCachedAnswers(Long attemptId) {
+  public List<CachedAnswerDto> recoverCachedAnswers(Long attemptId) {
     log.info("Recovering cached answers for attempt: {}", attemptId);
     return answerCacheService.getAllCachedAnswers(attemptId);
   }

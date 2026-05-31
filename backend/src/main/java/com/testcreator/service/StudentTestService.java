@@ -1,6 +1,6 @@
 package com.testcreator.service;
 
-import com.testcreator.dto.student.AvailableTestDTO;
+import com.testcreator.dto.student.AvailableTestDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.Question;
 import com.testcreator.entity.Test;
@@ -50,7 +50,7 @@ public class StudentTestService {
    * @return page of available tests
    */
   @Transactional(readOnly = true)
-  public Page<AvailableTestDTO> getAvailableTests(Pageable pageable) {
+  public Page<AvailableTestDto> getAvailableTests(Pageable pageable) {
     log.info("Fetching available tests for student");
 
     String currentUserEmail = securityUtil.getCurrentUserEmail();
@@ -62,7 +62,7 @@ public class StudentTestService {
     // Only get published tests
     Page<Test> publishedTests = testRepository.findPublishedTests(pageable);
 
-    List<AvailableTestDTO> dtos =
+    List<AvailableTestDto> dtos =
         publishedTests.getContent().stream()
             .map(
                 test -> {
@@ -88,7 +88,7 @@ public class StudentTestService {
                     }
                   }
 
-                  return AvailableTestDTO.builder()
+                  return AvailableTestDto.builder()
                       .id(test.getId())
                       .title(test.getTitle())
                       .description(test.getDescription())

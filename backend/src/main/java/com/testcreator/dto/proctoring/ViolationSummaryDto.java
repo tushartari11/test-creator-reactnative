@@ -51,7 +51,7 @@ public class ViolationSummaryDto {
   private Boolean honorPreserved;
 
   @Schema(description = "List of all violations (optional, for detailed view)")
-  private List<ViolationDTO> violations;
+  private List<ViolationDto> violations;
 
   /** Checks if honor was preserved (no critical violations). */
   public Boolean getHonorPreserved() {

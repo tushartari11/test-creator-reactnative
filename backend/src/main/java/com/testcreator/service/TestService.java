@@ -3,9 +3,9 @@ package com.testcreator.service;
 import com.testcreator.dto.test.CreateTestRequest;
 import com.testcreator.dto.test.ImportTestResponse;
 import com.testcreator.dto.test.QuestionRequest;
-import com.testcreator.dto.test.TestDTO;
-import com.testcreator.dto.test.TestDetailDTO;
-import com.testcreator.dto.test.TestListDTO;
+import com.testcreator.dto.test.TestDto;
+import com.testcreator.dto.test.TestDetailDto;
+import com.testcreator.dto.test.TestListDto;
 import com.testcreator.entity.Option;
 import com.testcreator.entity.Question;
 import com.testcreator.entity.Role;
@@ -85,7 +85,7 @@ public class TestService {
    * @param request test creation request
    * @return created test DTO
    */
-  public TestDTO createTest(CreateTestRequest request) {
+  public TestDto createTest(CreateTestRequest request) {
     log.info("Creating new test: {}", request.getTitle());
 
     // Get current user (teacher)
@@ -164,7 +164,7 @@ public class TestService {
                       });
             });
 
-    return mapToTestDTO(savedTest, teacher);
+    return mapToTestDto(savedTest, teacher);
   }
 
   /**
@@ -175,7 +175,7 @@ public class TestService {
    * @return page of tests
    */
   @Transactional(readOnly = true)
-  public Page<TestListDTO> getAllTestsByTeacher(Pageable pageable, String status) {
+  public Page<TestListDto> getAllTestsByTeacher(Pageable pageable, String status) {
     log.info("Fetching tests for current teacher");
 
     String currentUserEmail = securityUtil.getCurrentUserEmail();
@@ -192,11 +192,11 @@ public class TestService {
       tests = testRepository.findByCreatedBy(teacher, pageable);
     }
 
-    List<TestListDTO> dtos =
+    List<TestListDto> dtos =
         tests.getContent().stream()
             .map(
                 test ->
-                    TestListDTO.builder()
+                    TestListDto.builder()
                         .id(test.getId())
                         .title(test.getTitle())
                         .totalQuestions(test.getTotalQuestions())
@@ -218,7 +218,7 @@ public class TestService {
    * @return test detail DTO
    */
   @Transactional(readOnly = true)
-  public TestDetailDTO getTestById(Long testId) {
+  public TestDetailDto getTestById(Long testId) {
     log.info("Fetching test with ID: {}", testId);
 
     Test test =
@@ -232,7 +232,7 @@ public class TestService {
       throw new ForbiddenException("You don't have permission to view this test");
     }
 
-    return mapToTestDetailDTO(test);
+    return mapToTestDetailDto(test);
   }
 
   /**
@@ -242,7 +242,7 @@ public class TestService {
    * @param request update request
    * @return updated test DTO
    */
-  public TestDTO updateTest(Long testId, CreateTestRequest request) {
+  public TestDto updateTest(Long testId, CreateTestRequest request) {
     log.info("Updating test with ID: {}", testId);
 
     Test test =
@@ -311,7 +311,7 @@ public class TestService {
     Test updatedTest = testRepository.save(test);
 
     log.info("Test updated successfully: {}", testId);
-    return mapToTestDTO(updatedTest, updatedTest.getCreatedBy());
+    return mapToTestDto(updatedTest, updatedTest.getCreatedBy());
   }
 
   /**
@@ -320,7 +320,7 @@ public class TestService {
    * @param testId test ID
    * @return updated test DTO
    */
-  public TestDTO publishTest(Long testId) {
+  public TestDto publishTest(Long testId) {
     log.info("Publishing test with ID: {}", testId);
 
     Test test =
@@ -342,7 +342,7 @@ public class TestService {
     Test updatedTest = testRepository.save(test);
 
     log.info("Test published successfully: {}", testId);
-    return mapToTestDTO(updatedTest, updatedTest.getCreatedBy());
+    return mapToTestDto(updatedTest, updatedTest.getCreatedBy());
   }
 
   /**
@@ -351,7 +351,7 @@ public class TestService {
    * @param testId test ID
    * @return updated test DTO
    */
-  public TestDTO archiveTest(Long testId) {
+  public TestDto archiveTest(Long testId) {
     log.info("Archiving test with ID: {}", testId);
 
     Test test =
@@ -369,7 +369,7 @@ public class TestService {
     Test updatedTest = testRepository.save(test);
 
     log.info("Test archived successfully: {}", testId);
-    return mapToTestDTO(updatedTest, updatedTest.getCreatedBy());
+    return mapToTestDto(updatedTest, updatedTest.getCreatedBy());
   }
 
   /**
@@ -407,7 +407,7 @@ public class TestService {
    * @param testId test ID
    * @return updated test DTO with access code
    */
-  public TestDTO generateAccessCode(Long testId) {
+  public TestDto generateAccessCode(Long testId) {
     log.info("Generating access code for test: {}", testId);
 
     Test test =
@@ -430,7 +430,7 @@ public class TestService {
     Test updatedTest = testRepository.save(test);
 
     log.info("Access code generated for test {}: {}", testId, code);
-    return mapToTestDTO(updatedTest, updatedTest.getCreatedBy());
+    return mapToTestDto(updatedTest, updatedTest.getCreatedBy());
   }
 
   private String generateUniqueCode() {

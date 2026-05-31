@@ -2,11 +2,11 @@ package com.testcreator.controller;
 
 import com.testcreator.dto.student.GuestStartRequest;
 import com.testcreator.dto.student.GuestSubmitAnswerRequest;
-import com.testcreator.dto.student.GuestTestAccessDTO;
-import com.testcreator.dto.student.GuestTestDetailDTO;
-import com.testcreator.dto.student.QuestionWithOptionsDTO;
-import com.testcreator.dto.student.TestAttemptDTO;
-import com.testcreator.dto.student.TestResultDTO;
+import com.testcreator.dto.student.GuestTestAccessDto;
+import com.testcreator.dto.student.GuestTestDetailDto;
+import com.testcreator.dto.student.QuestionWithOptionsDto;
+import com.testcreator.dto.student.TestAttemptDto;
+import com.testcreator.dto.student.TestResultDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.GuestTestSession;
 import com.testcreator.entity.Option;
@@ -96,7 +96,7 @@ public class GuestTestController {
     @ApiResponse(responseCode = "201", description = "Guest link generated"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<GuestTestAccessDTO> generateGuestLink(
+  public ResponseEntity<GuestTestAccessDto> generateGuestLink(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     log.info("Generating guest access link for test: {}", testId);
@@ -124,8 +124,8 @@ public class GuestTestController {
 
     String guestAccessUrl = baseUrl + "/api/guest/tests/" + guestToken;
 
-    GuestTestAccessDTO dto =
-        GuestTestAccessDTO.builder()
+    GuestTestAccessDto dto =
+        GuestTestAccessDto.builder()
             .guestToken(guestToken)
             .testId(test.getId())
             .testTitle(test.getTitle())
@@ -153,7 +153,7 @@ public class GuestTestController {
         responseCode = "404",
         description = "No published test found with this access code")
   })
-  public ResponseEntity<GuestTestAccessDTO> lookupByAccessCode(
+  public ResponseEntity<GuestTestAccessDto> lookupByAccessCode(
       @Parameter(description = "Test access code") @PathVariable String accessCode) {
 
     log.info("Guest looking up test by access code: {}", accessCode);
@@ -181,8 +181,8 @@ public class GuestTestController {
 
     guestSessionRepository.save(session);
 
-    GuestTestAccessDTO dto =
-        GuestTestAccessDTO.builder()
+    GuestTestAccessDto dto =
+        GuestTestAccessDto.builder()
             .guestToken(guestToken)
             .testId(test.getId())
             .testTitle(test.getTitle())
@@ -249,7 +249,7 @@ public class GuestTestController {
     @ApiResponse(responseCode = "400", description = "Invalid or expired token"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<GuestTestDetailDTO> getTestAsGuest(
+  public ResponseEntity<GuestTestDetailDto> getTestAsGuest(
       @Parameter(description = "Guest token") @PathVariable String guestToken) {
 
     log.info("Guest accessing test with token: {}", guestToken);
@@ -261,8 +261,8 @@ public class GuestTestController {
 
     Test test = session.getTest();
 
-    GuestTestDetailDTO dto =
-        GuestTestDetailDTO.builder()
+    GuestTestDetailDto dto =
+        GuestTestDetailDto.builder()
             .guestToken(guestToken)
             .testId(test.getId())
             .title(test.getTitle())
@@ -288,7 +288,7 @@ public class GuestTestController {
     @ApiResponse(responseCode = "400", description = "Invalid token or test unavailable"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestAttemptDTO> startGuestTest(
+  public ResponseEntity<TestAttemptDto> startGuestTest(
       @Parameter(description = "Guest token") @PathVariable String guestToken,
       @Valid @RequestBody GuestStartRequest request) {
 
@@ -406,7 +406,7 @@ public class GuestTestController {
         .submitted(false)
         .questions(attemptDto.getQuestions())
         .answers(attemptDto.getAnswers())
-        .result(resultDTO)
+        .result(resultDto)
         .build();
   }
 
@@ -507,7 +507,7 @@ public class GuestTestController {
     @ApiResponse(responseCode = "404", description = "Attempt not found")
   })
   @Transactional
-  public ResponseEntity<TestResultDTO> submitGuestTest(
+  public ResponseEntity<TestResultDto> submitGuestTest(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId) {
 
     log.info("Guest submitting test for attempt: {}", attemptId);
@@ -531,7 +531,7 @@ public class GuestTestController {
     attempt.setSubmittedAt(LocalDateTime.now());
 
     // Calculate score and result
-    TestResultDTO result = resultService.calculateResult(attempt);
+    TestResultDto result = resultService.calculateResult(attempt);
 
     // Update attempt with score and result
     attempt.setScore(result.getScore().intValue());

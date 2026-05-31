@@ -1,13 +1,13 @@
 package com.testcreator.controller;
 
 import com.testcreator.dto.proctoring.ReportViolationRequest;
-import com.testcreator.dto.proctoring.ViolationResponseDTO;
-import com.testcreator.dto.student.AvailableTestDTO;
-import com.testcreator.dto.student.CachedAnswerDTO;
-import com.testcreator.dto.student.StudentResultSummaryDTO;
+import com.testcreator.dto.proctoring.ViolationResponseDto;
+import com.testcreator.dto.student.AvailableTestDto;
+import com.testcreator.dto.student.CachedAnswerDto;
+import com.testcreator.dto.student.StudentResultSummaryDto;
 import com.testcreator.dto.student.SubmitAnswerRequest;
-import com.testcreator.dto.student.TestAttemptDTO;
-import com.testcreator.dto.student.TestResultDTO;
+import com.testcreator.dto.student.TestAttemptDto;
+import com.testcreator.dto.student.TestResultDto;
 import com.testcreator.service.ProctoringService;
 import com.testcreator.service.StudentTestService;
 import com.testcreator.service.TestAttemptService;
@@ -74,7 +74,7 @@ public class StudentTestController {
     @ApiResponse(responseCode = "200", description = "Tests retrieved successfully"),
     @ApiResponse(responseCode = "401", description = "Unauthorized")
   })
-  public ResponseEntity<Page<AvailableTestDTO>> getAvailableTests(
+  public ResponseEntity<Page<AvailableTestDto>> getAvailableTests(
       @Parameter(description = "Page number (0-indexed)") @RequestParam(defaultValue = "0") @Min(0)
           int page,
       @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) @Max(100)
@@ -83,7 +83,7 @@ public class StudentTestController {
     log.info("Get available tests request - page: {}, size: {}", page, size);
 
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "testDate"));
-    Page<AvailableTestDTO> tests = studentTestService.getAvailableTests(pageable);
+    Page<AvailableTestDto> tests = studentTestService.getAvailableTests(pageable);
 
     return ResponseEntity.ok(tests);
   }
@@ -104,11 +104,11 @@ public class StudentTestController {
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestAttemptDTO> startAttempt(
+  public ResponseEntity<TestAttemptDto> startAttempt(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     log.info("Start test attempt request - testId: {}", testId);
-    TestAttemptDTO attempt = testAttemptService.startAttempt(testId);
+    TestAttemptDto attempt = testAttemptService.startAttempt(testId);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(attempt);
   }
@@ -130,11 +130,11 @@ public class StudentTestController {
     @ApiResponse(responseCode = "403", description = "Cannot access this attempt"),
     @ApiResponse(responseCode = "404", description = "Attempt not found")
   })
-  public ResponseEntity<TestAttemptDTO> getAttemptProgress(
+  public ResponseEntity<TestAttemptDto> getAttemptProgress(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId) {
 
     log.info("Get attempt progress request - attemptId: {}", attemptId);
-    TestAttemptDTO attempt = testAttemptService.getAttemptProgress(attemptId);
+    TestAttemptDto attempt = testAttemptService.getAttemptProgress(attemptId);
 
     return ResponseEntity.ok(attempt);
   }
@@ -189,11 +189,11 @@ public class StudentTestController {
     @ApiResponse(responseCode = "403", description = "Cannot submit this attempt"),
     @ApiResponse(responseCode = "404", description = "Attempt not found")
   })
-  public ResponseEntity<TestResultDTO> submitTest(
+  public ResponseEntity<TestResultDto> submitTest(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId) {
 
     log.info("Submit test request - attemptId: {}", attemptId);
-    TestResultDTO result = testAttemptService.submitTest(attemptId);
+    TestResultDto result = testAttemptService.submitTest(attemptId);
 
     return ResponseEntity.ok(result);
   }
@@ -213,14 +213,14 @@ public class StudentTestController {
     @ApiResponse(responseCode = "200", description = "Results retrieved successfully"),
     @ApiResponse(responseCode = "401", description = "Unauthorized")
   })
-  public ResponseEntity<Page<StudentResultSummaryDTO>> getAllResults(
+  public ResponseEntity<Page<StudentResultSummaryDto>> getAllResults(
       @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
       @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) @Max(100)
           int size) {
 
     log.info("Get all results request - page: {}, size: {}", page, size);
     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"));
-    Page<StudentResultSummaryDTO> results =
+    Page<StudentResultSummaryDto> results =
         testAttemptService.getAllResultsForCurrentStudent(pageable);
     return ResponseEntity.ok(results);
   }
@@ -241,11 +241,11 @@ public class StudentTestController {
     @ApiResponse(responseCode = "403", description = "Cannot access this result"),
     @ApiResponse(responseCode = "404", description = "Result not found")
   })
-  public ResponseEntity<TestResultDTO> getDetailedResult(
+  public ResponseEntity<TestResultDto> getDetailedResult(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId) {
 
     log.info("Get detailed result request - attemptId: {}", attemptId);
-    TestResultDTO result = testAttemptService.getDetailedResult(attemptId);
+    TestResultDto result = testAttemptService.getDetailedResult(attemptId);
     return ResponseEntity.ok(result);
   }
 
@@ -292,11 +292,11 @@ public class StudentTestController {
     @ApiResponse(responseCode = "403", description = "Not your attempt"),
     @ApiResponse(responseCode = "404", description = "Attempt not found")
   })
-  public ResponseEntity<List<CachedAnswerDTO>> recoverCachedAnswers(
+  public ResponseEntity<List<CachedAnswerDto>> recoverCachedAnswers(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId) {
 
     log.info("Recover cached answers - attemptId: {}", attemptId);
-    List<CachedAnswerDTO> cachedAnswers = testAttemptService.recoverCachedAnswers(attemptId);
+    List<CachedAnswerDto> cachedAnswers = testAttemptService.recoverCachedAnswers(attemptId);
     return ResponseEntity.ok(cachedAnswers);
   }
 
@@ -340,16 +340,16 @@ public class StudentTestController {
     @ApiResponse(
         responseCode = "200",
         description = "Violation recorded",
-        content = @Content(schema = @Schema(implementation = ViolationResponseDTO.class))),
+        content = @Content(schema = @Schema(implementation = ViolationResponseDto.class))),
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "404", description = "Attempt not found")
   })
-  public ResponseEntity<ViolationResponseDTO> reportViolation(
+  public ResponseEntity<ViolationResponseDto> reportViolation(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId,
       @Valid @RequestBody ReportViolationRequest request) {
 
     log.info("Violation reported - attemptId: {}, type: {}", attemptId, request.getViolationType());
-    ViolationResponseDTO response =
+    ViolationResponseDto response =
         proctoringService.reportViolationForCurrentUser(attemptId, request);
     return ResponseEntity.ok(response);
   }

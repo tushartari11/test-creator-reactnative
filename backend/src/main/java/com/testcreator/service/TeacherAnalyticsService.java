@@ -1,9 +1,9 @@
 package com.testcreator.service;
 
-import com.testcreator.dto.analytics.QuestionAnalyticsDTO;
-import com.testcreator.dto.analytics.StudentAttemptSummaryDTO;
-import com.testcreator.dto.analytics.TestAnalyticsDTO;
-import com.testcreator.dto.analytics.TestSummaryDTO;
+import com.testcreator.dto.analytics.QuestionAnalyticsDto;
+import com.testcreator.dto.analytics.StudentAttemptSummaryDto;
+import com.testcreator.dto.analytics.TestAnalyticsDto;
+import com.testcreator.dto.analytics.TestSummaryDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.Question;
 import com.testcreator.entity.ResultStatus;
@@ -58,7 +58,7 @@ public class TeacherAnalyticsService {
    * @param pageable pagination parameters
    * @return page of test summaries
    */
-  public Page<TestSummaryDTO> getTestSummaries(String teacherEmail, Pageable pageable) {
+  public Page<TestSummaryDto> getTestSummaries(String teacherEmail, Pageable pageable) {
     log.info("Getting test summaries for teacher: {}", teacherEmail);
 
     return testRepository
@@ -73,7 +73,7 @@ public class TeacherAnalyticsService {
    * @param teacherEmail the teacher's email (for authorization)
    * @return full test analytics
    */
-  public TestAnalyticsDTO getTestAnalytics(Long testId, String teacherEmail) {
+  public TestAnalyticsDto getTestAnalytics(Long testId, String teacherEmail) {
     log.info("Getting analytics for test: {}", testId);
 
     Test test =
@@ -128,11 +128,11 @@ public class TeacherAnalyticsService {
     Map<String, Integer> scoreDistribution = calculateScoreDistribution(scores);
 
     // Question analytics
-    List<QuestionAnalyticsDTO> questionAnalytics =
+    List<QuestionAnalyticsDto> questionAnalytics =
         calculateQuestionAnalytics(test, submittedAttempts);
 
     // Student results
-    List<StudentAttemptSummaryDTO> studentResults =
+    List<StudentAttemptSummaryDto> studentResults =
         submittedAttempts.stream()
             .map(this::mapToStudentAttemptSummary)
             .collect(Collectors.toList());
@@ -143,7 +143,7 @@ public class TeacherAnalyticsService {
     long totalViolations =
         attempts.stream().mapToLong(a -> violationRepository.countByAttemptId(a.getId())).sum();
 
-    return TestAnalyticsDTO.builder()
+    return TestAnalyticsDto.builder()
         .testId(test.getId())
         .testTitle(test.getTitle())
         .status(test.getStatus().name())
@@ -181,7 +181,7 @@ public class TeacherAnalyticsService {
    * @param pageable pagination parameters
    * @return page of student results
    */
-  public Page<StudentAttemptSummaryDTO> getStudentResults(
+  public Page<StudentAttemptSummaryDto> getStudentResults(
       Long testId, String teacherEmail, Pageable pageable) {
     log.info("Getting student results for test: {}", testId);
 
@@ -261,7 +261,7 @@ public class TeacherAnalyticsService {
 
   // ========== Helper Methods ==========
 
-  private TestSummaryDTO mapToTestSummary(Test test) {
+  private TestSummaryDto mapToTestSummary(Test test) {
     long totalAttempts = attemptRepository.countByTestId(test.getId());
     long completedAttempts =
         attemptRepository.countByTestIdAndStatus(test.getId(), AttemptStatus.SUBMITTED);
@@ -276,7 +276,7 @@ public class TeacherAnalyticsService {
     long passCount = submitted.stream().filter(a -> a.getResult() == ResultStatus.PASS).count();
     double passRate = submitted.isEmpty() ? 0.0 : (passCount * 100.0 / submitted.size());
 
-    return TestSummaryDTO.builder()
+    return TestSummaryDto.builder()
         .testId(test.getId())
         .testTitle(test.getTitle())
         .status(test.getStatus().name())
@@ -292,7 +292,7 @@ public class TeacherAnalyticsService {
         .build();
   }
 
-  private StudentAttemptSummaryDTO mapToStudentAttemptSummary(TestAttempt attempt) {
+  private StudentAttemptSummaryDto mapToStudentAttemptSummary(TestAttempt attempt) {
     int totalQuestions = attempt.getTest().getTotalQuestions();
     int skipped = totalQuestions - attempt.getCorrectAnswers() - attempt.getWrongAnswers();
 
@@ -304,7 +304,7 @@ public class TeacherAnalyticsService {
     long violations = violationRepository.countByAttemptId(attempt.getId());
     boolean hasCritical = violationRepository.hasCriticalViolations(attempt.getId());
 
-    return StudentAttemptSummaryDTO.builder()
+    return StudentAttemptSummaryDto.builder()
         .attemptId(attempt.getId())
         .studentId(attempt.getStudent() != null ? attempt.getStudent().getId() : null)
         .studentName(attempt.getStudent() != null ? attempt.getStudent().getName() : "Guest")
@@ -325,9 +325,9 @@ public class TeacherAnalyticsService {
         .build();
   }
 
-  private List<QuestionAnalyticsDTO> calculateQuestionAnalytics(
+  private List<QuestionAnalyticsDto> calculateQuestionAnalytics(
       Test test, List<TestAttempt> attempts) {
-    List<QuestionAnalyticsDTO> analytics = new ArrayList<>();
+    List<QuestionAnalyticsDto> analytics = new ArrayList<>();
     int totalAttempts = attempts.size();
 
     for (Question question : test.getQuestions()) {
@@ -364,7 +364,7 @@ public class TeacherAnalyticsService {
       double correctPercentage = totalAttempts == 0 ? 0.0 : (correctCount * 100.0 / totalAttempts);
 
       analytics.add(
-          QuestionAnalyticsDTO.builder()
+          QuestionAnalyticsDto.builder()
               .questionId(question.getId())
               .questionNumber(question.getQuestionNumber())
               .questionText(truncateText(question.getQuestionText(), 100))
@@ -374,7 +374,7 @@ public class TeacherAnalyticsService {
               .skippedCount(skippedCount)
               .correctPercentage(round(correctPercentage))
               .answerDistribution(answerDistribution)
-              .difficulty(QuestionAnalyticsDTO.calculateDifficulty(correctPercentage))
+              .difficulty(QuestionAnalyticsDto.calculateDifficulty(correctPercentage))
               .build());
     }
 

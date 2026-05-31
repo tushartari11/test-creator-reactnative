@@ -1,7 +1,7 @@
 package com.testcreator.controller;
 
-import com.testcreator.dto.proctoring.ViolationDTO;
-import com.testcreator.dto.proctoring.ViolationSummaryDTO;
+import com.testcreator.dto.proctoring.ViolationDto;
+import com.testcreator.dto.proctoring.ViolationSummaryDto;
 import com.testcreator.entity.TestAttempt;
 import com.testcreator.exception.ForbiddenException;
 import com.testcreator.exception.ResourceNotFoundException;
@@ -61,12 +61,12 @@ public class ProctoringController {
     @ApiResponse(
         responseCode = "200",
         description = "Violations retrieved",
-        content = @Content(schema = @Schema(implementation = ViolationDTO.class))),
+        content = @Content(schema = @Schema(implementation = ViolationDto.class))),
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "403", description = "Not your test"),
     @ApiResponse(responseCode = "404", description = "Attempt not found")
   })
-  public ResponseEntity<List<ViolationDTO>> getViolationsForAttempt(
+  public ResponseEntity<List<ViolationDto>> getViolationsForAttempt(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId) {
 
     log.info("Get violations for attempt: {}", attemptId);
@@ -74,7 +74,7 @@ public class ProctoringController {
     // Validate teacher owns this test
     validateTeacherOwnsAttempt(attemptId);
 
-    List<ViolationDTO> violations = proctoringService.getViolations(attemptId);
+    List<ViolationDto> violations = proctoringService.getViolations(attemptId);
 
     return ResponseEntity.ok(violations);
   }
@@ -93,19 +93,19 @@ public class ProctoringController {
     @ApiResponse(
         responseCode = "200",
         description = "Summary retrieved",
-        content = @Content(schema = @Schema(implementation = ViolationSummaryDTO.class))),
+        content = @Content(schema = @Schema(implementation = ViolationSummaryDto.class))),
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "403", description = "Not your test"),
     @ApiResponse(responseCode = "404", description = "Attempt not found")
   })
-  public ResponseEntity<ViolationSummaryDTO> getViolationSummary(
+  public ResponseEntity<ViolationSummaryDto> getViolationSummary(
       @Parameter(description = "Attempt ID") @PathVariable Long attemptId) {
 
     log.info("Get violation summary for attempt: {}", attemptId);
 
     validateTeacherOwnsAttempt(attemptId);
 
-    ViolationSummaryDTO summary = proctoringService.getViolationSummary(attemptId);
+    ViolationSummaryDto summary = proctoringService.getViolationSummary(attemptId);
 
     return ResponseEntity.ok(summary);
   }
@@ -126,14 +126,14 @@ public class ProctoringController {
     @ApiResponse(responseCode = "403", description = "Not your test"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<List<ViolationSummaryDTO>> getViolationsForTest(
+  public ResponseEntity<List<ViolationSummaryDto>> getViolationsForTest(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     log.info("Get violations for test: {}", testId);
 
     validateTeacherOwnsTest(testId);
 
-    List<ViolationSummaryDTO> summaries = proctoringService.getViolationSummariesForTest(testId);
+    List<ViolationSummaryDto> summaries = proctoringService.getViolationSummariesForTest(testId);
 
     return ResponseEntity.ok(summaries);
   }

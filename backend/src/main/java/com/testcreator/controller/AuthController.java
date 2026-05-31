@@ -3,7 +3,7 @@ package com.testcreator.controller;
 import com.testcreator.dto.auth.AuthResponse;
 import com.testcreator.dto.auth.LoginRequest;
 import com.testcreator.dto.auth.RegisterRequest;
-import com.testcreator.dto.user.UserDTO;
+import com.testcreator.dto.user.UserDto;
 import com.testcreator.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -89,9 +89,9 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "User information retrieved"),
     @ApiResponse(responseCode = "401", description = "Not authenticated")
   })
-  public ResponseEntity<UserDTO> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+  public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
     log.info("Get current user request for: {}", userDetails.getUsername());
-    UserDTO user = authService.getCurrentUser(userDetails.getUsername());
+    UserDto user = authService.getCurrentUser(userDetails.getUsername());
     return ResponseEntity.ok(user);
   }
 }

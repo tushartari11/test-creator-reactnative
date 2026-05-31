@@ -1,6 +1,6 @@
 package com.testcreator.service;
 
-import com.testcreator.dto.student.CachedAnswerDTO;
+import com.testcreator.dto.student.CachedAnswerDto;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -45,8 +45,8 @@ public class AnswerCacheService {
     String answerKey = buildAnswerKey(attemptId, questionId);
     String attemptAnswersKey = buildAttemptAnswersKey(attemptId);
 
-    CachedAnswerDTO cachedAnswer =
-        CachedAnswerDTO.builder()
+    CachedAnswerDto cachedAnswer =
+        CachedAnswerDto.builder()
             .attemptId(attemptId)
             .questionId(questionId)
             .selectedOption(selectedOption)
@@ -75,11 +75,11 @@ public class AnswerCacheService {
    * @param questionId question ID
    * @return cached answer or null if not found
    */
-  public CachedAnswerDTO getCachedAnswer(Long attemptId, Long questionId) {
+  public CachedAnswerDto getCachedAnswer(Long attemptId, Long questionId) {
     String answerKey = buildAnswerKey(attemptId, questionId);
     Object cached = redisTemplate.opsForValue().get(answerKey);
-    if (cached instanceof CachedAnswerDTO) {
-      return (CachedAnswerDTO) cached;
+    if (cached instanceof CachedAnswerDto) {
+      return (CachedAnswerDto) cached;
     }
     return null;
   }
@@ -90,7 +90,7 @@ public class AnswerCacheService {
    * @param attemptId test attempt ID
    * @return list of cached answers
    */
-  public List<CachedAnswerDTO> getAllCachedAnswers(Long attemptId) {
+  public List<CachedAnswerDto> getAllCachedAnswers(Long attemptId) {
     String attemptAnswersKey = buildAttemptAnswersKey(attemptId);
     Set<Object> questionIds = redisTemplate.opsForSet().members(attemptAnswersKey);
 
@@ -98,10 +98,10 @@ public class AnswerCacheService {
       return new ArrayList<>();
     }
 
-    List<CachedAnswerDTO> answers = new ArrayList<>();
+    List<CachedAnswerDto> answers = new ArrayList<>();
     for (Object questionIdObj : questionIds) {
       Long questionId = Long.parseLong(questionIdObj.toString());
-      CachedAnswerDTO cached = getCachedAnswer(attemptId, questionId);
+      CachedAnswerDto cached = getCachedAnswer(attemptId, questionId);
       if (cached != null) {
         answers.add(cached);
       }
@@ -116,7 +116,7 @@ public class AnswerCacheService {
    * @param attemptId test attempt ID
    * @return list of answers not yet synced to database
    */
-  public List<CachedAnswerDTO> getUnsyncedAnswers(Long attemptId) {
+  public List<CachedAnswerDto> getUnsyncedAnswers(Long attemptId) {
     return getAllCachedAnswers(attemptId).stream()
         .filter(a -> !Boolean.TRUE.equals(a.getSyncedToDb()))
         .collect(Collectors.toList());
@@ -131,7 +131,7 @@ public class AnswerCacheService {
   public void markAnswersSynced(Long attemptId, List<Long> questionIds) {
     for (Long questionId : questionIds) {
       String answerKey = buildAnswerKey(attemptId, questionId);
-      CachedAnswerDTO cached = getCachedAnswer(attemptId, questionId);
+      CachedAnswerDto cached = getCachedAnswer(attemptId, questionId);
       if (cached != null) {
         cached.setSyncedToDb(true);
         redisTemplate.opsForValue().set(answerKey, cached, ANSWER_TTL);

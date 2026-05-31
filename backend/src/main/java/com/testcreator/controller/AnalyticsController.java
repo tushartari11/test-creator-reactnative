@@ -1,9 +1,9 @@
 package com.testcreator.controller;
 
-import com.testcreator.dto.analytics.QuestionAnalyticsDTO;
-import com.testcreator.dto.analytics.StudentAttemptSummaryDTO;
-import com.testcreator.dto.analytics.TestAnalyticsDTO;
-import com.testcreator.dto.analytics.TestSummaryDTO;
+import com.testcreator.dto.analytics.QuestionAnalyticsDto;
+import com.testcreator.dto.analytics.StudentAttemptSummaryDto;
+import com.testcreator.dto.analytics.TestAnalyticsDto;
+import com.testcreator.dto.analytics.TestSummaryDto;
 import com.testcreator.security.SecurityUtil;
 import com.testcreator.service.TeacherAnalyticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -66,10 +66,10 @@ public class AnalyticsController {
     @ApiResponse(
         responseCode = "200",
         description = "Test summaries retrieved",
-        content = @Content(schema = @Schema(implementation = TestSummaryDTO.class))),
+        content = @Content(schema = @Schema(implementation = TestSummaryDto.class))),
     @ApiResponse(responseCode = "401", description = "Unauthorized")
   })
-  public ResponseEntity<Page<TestSummaryDTO>> getTestSummaries(
+  public ResponseEntity<Page<TestSummaryDto>> getTestSummaries(
       @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
       @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) @Max(100)
           int size) {
@@ -78,7 +78,7 @@ public class AnalyticsController {
     log.info("Getting test summaries for teacher: {}", teacherEmail);
 
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-    Page<TestSummaryDTO> summaries = analyticsService.getTestSummaries(teacherEmail, pageable);
+    Page<TestSummaryDto> summaries = analyticsService.getTestSummaries(teacherEmail, pageable);
 
     return ResponseEntity.ok(summaries);
   }
@@ -99,17 +99,17 @@ public class AnalyticsController {
     @ApiResponse(
         responseCode = "200",
         description = "Analytics retrieved",
-        content = @Content(schema = @Schema(implementation = TestAnalyticsDTO.class))),
+        content = @Content(schema = @Schema(implementation = TestAnalyticsDto.class))),
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<TestAnalyticsDTO> getTestAnalytics(
+  public ResponseEntity<TestAnalyticsDto> getTestAnalytics(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     String teacherEmail = securityUtil.getCurrentUserEmail();
     log.info("Getting analytics for test: {} by teacher: {}", testId, teacherEmail);
 
-    TestAnalyticsDTO analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
+    TestAnalyticsDto analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
 
     return ResponseEntity.ok(analytics);
   }
@@ -130,11 +130,11 @@ public class AnalyticsController {
     @ApiResponse(
         responseCode = "200",
         description = "Student results retrieved",
-        content = @Content(schema = @Schema(implementation = StudentAttemptSummaryDTO.class))),
+        content = @Content(schema = @Schema(implementation = StudentAttemptSummaryDto.class))),
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<Page<StudentAttemptSummaryDTO>> getStudentResults(
+  public ResponseEntity<Page<StudentAttemptSummaryDto>> getStudentResults(
       @Parameter(description = "Test ID") @PathVariable Long testId,
       @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
       @Parameter(description = "Page size") @RequestParam(defaultValue = "20") @Min(1) @Max(100)
@@ -152,7 +152,7 @@ public class AnalyticsController {
             : Sort.by(sortBy).descending();
     Pageable pageable = PageRequest.of(page, size, sort);
 
-    Page<StudentAttemptSummaryDTO> results =
+    Page<StudentAttemptSummaryDto> results =
         analyticsService.getStudentResults(testId, teacherEmail, pageable);
 
     return ResponseEntity.ok(results);
@@ -205,13 +205,13 @@ public class AnalyticsController {
     @ApiResponse(responseCode = "401", description = "Unauthorized"),
     @ApiResponse(responseCode = "404", description = "Test not found")
   })
-  public ResponseEntity<List<QuestionAnalyticsDTO>> getQuestionAnalytics(
+  public ResponseEntity<List<QuestionAnalyticsDto>> getQuestionAnalytics(
       @Parameter(description = "Test ID") @PathVariable Long testId) {
 
     String teacherEmail = securityUtil.getCurrentUserEmail();
     log.info("Getting question analytics for test: {}", testId);
 
-    TestAnalyticsDTO analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
+    TestAnalyticsDto analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
 
     return ResponseEntity.ok(analytics.getQuestionAnalytics());
   }

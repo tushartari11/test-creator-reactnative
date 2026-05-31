@@ -24,7 +24,7 @@ public class TestAttemptDto {
   private String guestName;
 
   @Schema(description = "Test result summary and review")
-  private TestResultDTO result;
+  private TestResultDto result;
 
   @Schema(description = "Attempt ID", example = "101")
   private Long id;
@@ -60,8 +60,8 @@ public class TestAttemptDto {
   private Boolean submitted;
 
   @Schema(description = "Questions to answer")
-  private List<QuestionWithOptionsDTO> questions;
+  private List<QuestionWithOptionsDto> questions;
 
   @Schema(description = "Student's answers so far")
-  private List<StudentAnswerRecordDTO> answers;
+  private List<StudentAnswerRecordDto> answers;
 }

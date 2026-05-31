@@ -1,12 +1,12 @@
 package com.testcreator.service;
 
-import com.testcreator.dto.student.CachedAnswerDTO;
-import com.testcreator.dto.student.QuestionWithOptionsDTO;
-import com.testcreator.dto.student.StudentAnswerRecordDTO;
-import com.testcreator.dto.student.StudentResultSummaryDTO;
+import com.testcreator.dto.student.CachedAnswerDto;
+import com.testcreator.dto.student.QuestionWithOptionsDto;
+import com.testcreator.dto.student.StudentAnswerRecordDto;
+import com.testcreator.dto.student.StudentResultSummaryDto;
 import com.testcreator.dto.student.SubmitAnswerRequest;
-import com.testcreator.dto.student.TestAttemptDTO;
-import com.testcreator.dto.student.TestResultDTO;
+import com.testcreator.dto.student.TestAttemptDto;
+import com.testcreator.dto.student.TestResultDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.Question;
 import com.testcreator.entity.ResultStatus;
@@ -68,7 +68,7 @@ public class TestAttemptService {
    * @param testId test ID
    * @return started test attempt with questions
    */
-  public TestAttemptDTO startAttempt(Long testId) {
+  public TestAttemptDto startAttempt(Long testId) {
     log.info("Starting test attempt for test: {}", testId);
 
     String currentUserEmail = securityUtil.getCurrentUserEmail();
@@ -94,7 +94,7 @@ public class TestAttemptService {
 
     if (existingAttempt.isPresent()) {
       log.info("Resuming existing attempt: {}", existingAttempt.get().getId());
-      return mapToTestAttemptDTO(existingAttempt.get(), test);
+      return mapToTestAttemptDto(existingAttempt.get(), test);
     }
 
     // Create new attempt
@@ -112,7 +112,7 @@ public class TestAttemptService {
     TestAttempt savedAttempt = testAttemptRepository.save(attempt);
     log.info("Test attempt started with ID: {}", savedAttempt.getId());
 
-    return mapToTestAttemptDTO(savedAttempt, test);
+    return mapToTestAttemptDto(savedAttempt, test);
   }
 
   /**
@@ -122,7 +122,7 @@ public class TestAttemptService {
    * @return current attempt progress
    */
   @Transactional(readOnly = true)
-  public TestAttemptDTO getAttemptProgress(Long attemptId) {
+  public TestAttemptDto getAttemptProgress(Long attemptId) {
     log.info("Getting attempt progress for attempt: {}", attemptId);
 
     String currentUserEmail = securityUtil.getCurrentUserEmail();
@@ -152,7 +152,7 @@ public class TestAttemptService {
       throw new BusinessException("Your test session has expired");
     }
 
-    return mapToTestAttemptDTO(attempt, attempt.getTest());
+    return mapToTestAttemptDto(attempt, attempt.getTest());
   }
 
   /**
@@ -236,7 +236,7 @@ public class TestAttemptService {
    * @param attemptId attempt ID
    * @return test result
    */
-  public TestResultDTO submitTest(Long attemptId) {
+  public TestResultDto submitTest(Long attemptId) {
     log.info("Submitting test for attempt: {}", attemptId);
 
     String currentUserEmail = securityUtil.getCurrentUserEmail();
@@ -266,7 +266,7 @@ public class TestAttemptService {
     attempt.setSubmittedAt(LocalDateTime.now());
 
     // Calculate score and result
-    TestResultDTO result = resultService.calculateResult(attempt);
+    TestResultDto result = resultService.calculateResult(attempt);
 
     // Update attempt with score and result
     attempt.setScore(result.getScore().intValue());
@@ -338,7 +338,7 @@ public class TestAttemptService {
    * @return list of cached answers
    */
   @Transactional(readOnly = true)
-  public List<CachedAnswerDTO> recoverCachedAnswers(Long attemptId) {
+  public List<CachedAnswerDto> recoverCachedAnswers(Long attemptId) {
     log.info("Recovering cached answers - attemptId: {}", attemptId);
 
     // Validate ownership
@@ -368,7 +368,7 @@ public class TestAttemptService {
    * @return detailed test result
    */
   @Transactional(readOnly = true)
-  public TestResultDTO getDetailedResult(Long attemptId) {
+  public TestResultDto getDetailedResult(Long attemptId) {
     log.info("Getting detailed result - attemptId: {}", attemptId);
 
     // Validate ownership
@@ -384,7 +384,7 @@ public class TestAttemptService {
    * @return page of result summaries
    */
   @Transactional(readOnly = true)
-  public Page<StudentResultSummaryDTO> getAllResultsForCurrentStudent(Pageable pageable) {
+  public Page<StudentResultSummaryDto> getAllResultsForCurrentStudent(Pageable pageable) {
     log.info("Getting all results for current student");
 
     String currentUserEmail = securityUtil.getCurrentUserEmail();
@@ -397,7 +397,7 @@ public class TestAttemptService {
         .findSubmittedAttemptsByStudent(student.getId(), pageable)
         .map(
             attempt ->
-                StudentResultSummaryDTO.builder()
+                StudentResultSummaryDto.builder()
                     .attemptId(attempt.getId())
                     .testId(attempt.getTest().getId())
                     .testTitle(attempt.getTest().getTitle())

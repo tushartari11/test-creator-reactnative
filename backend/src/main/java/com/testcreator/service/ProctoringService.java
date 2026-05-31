@@ -1,9 +1,9 @@
 package com.testcreator.service;
 
 import com.testcreator.dto.proctoring.ReportViolationRequest;
-import com.testcreator.dto.proctoring.ViolationDTO;
-import com.testcreator.dto.proctoring.ViolationResponseDTO;
-import com.testcreator.dto.proctoring.ViolationSummaryDTO;
+import com.testcreator.dto.proctoring.ViolationDto;
+import com.testcreator.dto.proctoring.ViolationResponseDto;
+import com.testcreator.dto.proctoring.ViolationSummaryDto;
 import com.testcreator.entity.AttemptStatus;
 import com.testcreator.entity.ProctoringViolation;
 import com.testcreator.entity.TestAttempt;
@@ -61,7 +61,7 @@ public class ProctoringService {
    * @param request the violation report request
    * @return response with action instructions for the frontend
    */
-  public ViolationResponseDTO reportViolationForCurrentUser(
+  public ViolationResponseDto reportViolationForCurrentUser(
       Long attemptId, ReportViolationRequest request) {
     // Validate that the current user owns this attempt
     testAttemptService.validateAndGetAttempt(attemptId);
@@ -75,7 +75,7 @@ public class ProctoringService {
    * @param request the violation report request
    * @return response with action instructions for the frontend
    */
-  public ViolationResponseDTO recordViolation(Long attemptId, ReportViolationRequest request) {
+  public ViolationResponseDto recordViolation(Long attemptId, ReportViolationRequest request) {
     log.info("Recording violation: attemptId={}, type={}", attemptId, request.getViolationType());
 
     TestAttempt attempt =
@@ -87,7 +87,7 @@ public class ProctoringService {
     // Only record violations for in-progress attempts
     if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
       log.warn("Attempt {} is not in progress, ignoring violation", attemptId);
-      return ViolationResponseDTO.acknowledged();
+      return ViolationResponseDto.acknowledged();
     }
 
     // Determine severity
@@ -128,27 +128,27 @@ public class ProctoringService {
   }
 
   /** Checks violation thresholds and determines the response. */
-  private ViolationResponseDTO checkThresholdsAndRespond(
+  private ViolationResponseDto checkThresholdsAndRespond(
       long totalViolations, long criticalViolations, long tabSwitches, ViolationSeverity severity) {
 
     // Force submit if critical violations exceed threshold
     if (criticalViolations >= maxCriticalViolations) {
       log.warn("Critical violation threshold exceeded: {} critical violations", criticalViolations);
-      return ViolationResponseDTO.forceSubmit(
+      return ViolationResponseDto.forceSubmit(
           "Too many critical violations detected", totalViolations, criticalViolations);
     }
 
     // Force submit if total violations exceed threshold
     if (totalViolations >= maxViolations) {
       log.warn("Total violation threshold exceeded: {} violations", totalViolations);
-      return ViolationResponseDTO.forceSubmit(
+      return ViolationResponseDto.forceSubmit(
           "Maximum violation limit reached", totalViolations, criticalViolations);
     }
 
     // Warning for tab switches approaching limit
     if (tabSwitches >= maxTabSwitches - 1) {
       int remaining = (int) (maxTabSwitches - tabSwitches);
-      return ViolationResponseDTO.warning(
+      return ViolationResponseDto.warning(
           "Warning: You have switched tabs "
               + tabSwitches
               + " times. "
@@ -162,11 +162,11 @@ public class ProctoringService {
     // Warning for high/critical severity
     if (severity == ViolationSeverity.HIGH || severity == ViolationSeverity.CRITICAL) {
       int remaining = (int) (maxViolations - totalViolations);
-      return ViolationResponseDTO.warning(getWarningMessage(severity), totalViolations, remaining);
+      return ViolationResponseDto.warning(getWarningMessage(severity), totalViolations, remaining);
     }
 
     // Simple acknowledgment for low/medium violations
-    return ViolationResponseDTO.builder()
+    return ViolationResponseDto.builder()
         .recorded(true)
         .showWarning(severity == ViolationSeverity.MEDIUM)
         .warningMessage(
@@ -207,7 +207,7 @@ public class ProctoringService {
    * @return violation summary DTO
    */
   @Transactional(readOnly = true)
-  public ViolationSummaryDTO getViolationSummary(Long attemptId) {
+  public ViolationSummaryDto getViolationSummary(Long attemptId) {
     TestAttempt attempt =
         attemptRepository
             .findById(attemptId)
@@ -229,7 +229,7 @@ public class ProctoringService {
       byType.put((ViolationType) row[0], (Long) row[1]);
     }
 
-    return ViolationSummaryDTO.builder()
+    return ViolationSummaryDto.builder()
         .attemptId(attemptId)
         .studentName(attempt.getStudent() != null ? attempt.getStudent().getName() : "Guest")
         .studentEmail(attempt.getStudent() != null ? attempt.getStudent().getEmail() : null)
@@ -249,7 +249,7 @@ public class ProctoringService {
    * @return list of violation summaries
    */
   @Transactional(readOnly = true)
-  public List<ViolationSummaryDTO> getViolationSummariesForTest(Long testId) {
+  public List<ViolationSummaryDto> getViolationSummariesForTest(Long testId) {
     List<Object[]> stats = violationRepository.getViolationStatsForTest(testId);
 
     return stats.stream()
@@ -261,7 +261,7 @@ public class ProctoringService {
 
               TestAttempt attempt = attemptRepository.findById(attemptId).orElse(null);
 
-              return ViolationSummaryDTO.builder()
+              return ViolationSummaryDto.builder()
                   .attemptId(attemptId)
                   .studentName(
                       attempt != null && attempt.getStudent() != null

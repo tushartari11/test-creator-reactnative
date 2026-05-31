@@ -3,7 +3,7 @@ package com.testcreator.service;
 import com.testcreator.dto.auth.AuthResponse;
 import com.testcreator.dto.auth.LoginRequest;
 import com.testcreator.dto.auth.RegisterRequest;
-import com.testcreator.dto.user.UserDTO;
+import com.testcreator.dto.user.UserDto;
 import com.testcreator.entity.User;
 import com.testcreator.exception.DuplicateEmailException;
 import com.testcreator.exception.ValidationException;
@@ -123,7 +123,7 @@ public class AuthService {
    * @return user DTO
    */
   @Transactional(readOnly = true)
-  public UserDTO getCurrentUser(String email) {
+  public UserDto getCurrentUser(String email) {
     User user =
         userRepository
             .findByEmail(email)
@@ -155,7 +155,7 @@ public class AuthService {
   }
 
   /**
-   * Maps User entity to UserDTO.
+   * Maps User entity to UserDto.
    *
    * @param user the user entity
    * @return user DTO

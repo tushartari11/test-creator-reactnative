@@ -79,10 +79,10 @@ public class TestAnalyticsDto {
   private Map<String, Integer> scoreDistribution;
 
   @Schema(description = "Per-question analytics")
-  private List<QuestionAnalyticsDTO> questionAnalytics;
+  private List<QuestionAnalyticsDto> questionAnalytics;
 
   @Schema(description = "Individual student results")
-  private List<StudentAttemptSummaryDTO> studentResults;
+  private List<StudentAttemptSummaryDto> studentResults;
 
   @Schema(description = "Students with proctoring violations")
   private Integer studentsWithViolations;
