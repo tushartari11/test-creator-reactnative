@@ -18,6 +18,25 @@ import { useAuth } from '../../src/lib/auth';
 import { C } from '../../src/lib/theme';
 import { formatDate } from '../../src/lib/utils';
 
+function alertDialog(
+  title: string,
+  message: string,
+  buttons?: { text: string; style?: 'default' | 'cancel' | 'destructive'; onPress?: () => void }[]
+) {
+  if (Platform.OS !== 'web') {
+    Alert.alert(title, message, buttons as Parameters<typeof Alert.alert>[2]);
+    return;
+  }
+  if (!buttons?.length) {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  const confirmBtn = buttons.find(b => b.style !== 'cancel');
+  if (window.confirm(`${title}\n\n${message}`)) {
+    confirmBtn?.onPress?.();
+  }
+}
+
 export default function TeacherDashboard() {
   const { width } = useWindowDimensions();
   const isMedium = width > 768;
@@ -58,10 +77,14 @@ export default function TeacherDashboard() {
   }
 
   async function handlePublish(test: TestListItem) {
-    Alert.alert('Publish Test', `Publish "${test.title}"? Students will be able to take it.`, [
+    const isRepublish = test.status === 'ARCHIVED';
+    alertDialog(
+      isRepublish ? 'Re-publish Test' : 'Publish Test',
+      `${isRepublish ? 'Re-publish' : 'Publish'} "${test.title}"? Students will be able to take it.`,
+      [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Publish',
+        text: isRepublish ? 'Re-publish' : 'Publish',
         onPress: async () => {
           setActionLoading(test.id);
           try {
@@ -69,7 +92,7 @@ export default function TeacherDashboard() {
             setTests(prev => prev.map(t => (t.id === test.id ? { ...t, status: updated.status } : t)));
             setPublishedCount(c => c + 1);
           } catch (e: unknown) {
-            Alert.alert('Error', (e as Error).message || 'Failed to publish test');
+            alertDialog('Error', (e as Error).message || 'Failed to publish test');
           } finally {
             setActionLoading(null);
           }
@@ -79,7 +102,7 @@ export default function TeacherDashboard() {
   }
 
   async function handleArchive(test: TestListItem) {
-    Alert.alert('Archive Test', `Archive "${test.title}"? Students won't be able to take it.`, [
+    alertDialog('Archive Test', `Archive "${test.title}"? Students won't be able to take it.`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Archive',
@@ -91,7 +114,7 @@ export default function TeacherDashboard() {
             setTests(prev => prev.map(t => (t.id === test.id ? { ...t, status: updated.status } : t)));
             setPublishedCount(c => Math.max(0, c - 1));
           } catch (e: unknown) {
-            Alert.alert('Error', (e as Error).message || 'Failed to archive test');
+            alertDialog('Error', (e as Error).message || 'Failed to archive test');
           } finally {
             setActionLoading(null);
           }
@@ -101,7 +124,7 @@ export default function TeacherDashboard() {
   }
 
   async function handleDelete(test: TestListItem) {
-    Alert.alert('Delete Test', `Delete "${test.title}"? This action cannot be undone.`, [
+    alertDialog('Delete Test', `Delete "${test.title}"? This action cannot be undone.`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -114,7 +137,7 @@ export default function TeacherDashboard() {
             setTotalTests(c => c - 1);
             if (test.status === 'PUBLISHED') setPublishedCount(c => Math.max(0, c - 1));
           } catch (e: unknown) {
-            Alert.alert('Error', (e as Error).message || 'Failed to delete test');
+            alertDialog('Error', (e as Error).message || 'Failed to delete test');
           } finally {
             setActionLoading(null);
           }
@@ -124,7 +147,7 @@ export default function TeacherDashboard() {
   }
 
   function comingSoon(feature: string) {
-    Alert.alert('Coming Soon', `${feature} will be available in a future update.`);
+    alertDialog('Coming Soon', `${feature} will be available in a future update.`);
   }
 
   function renderTestRow({ item: test }: { item: TestListItem }) {
@@ -157,6 +180,9 @@ export default function TeacherDashboard() {
                 )}
                 {test.status === 'PUBLISHED' && (
                   <ActionBtn label="Archive" color={C.WARNING} onPress={() => handleArchive(test)} />
+                )}
+                {test.status === 'ARCHIVED' && (
+                  <ActionBtn label="Re-publish" filled color={C.SUCCESS} onPress={() => handlePublish(test)} />
                 )}
                 <ActionBtn label="Analytics" onPress={() => comingSoon('Analytics')} />
                 <ActionBtn label="Delete" filled color={C.DANGER} onPress={() => handleDelete(test)} />
@@ -193,6 +219,9 @@ export default function TeacherDashboard() {
               )}
               {test.status === 'PUBLISHED' && (
                 <ActionBtn label="Archive" color={C.WARNING} onPress={() => handleArchive(test)} />
+              )}
+              {test.status === 'ARCHIVED' && (
+                <ActionBtn label="Re-publish" filled color={C.SUCCESS} onPress={() => handlePublish(test)} />
               )}
               <ActionBtn label="Delete" filled color={C.DANGER} onPress={() => handleDelete(test)} />
             </>
