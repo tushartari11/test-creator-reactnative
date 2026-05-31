@@ -201,4 +201,18 @@ public interface TestAttemptRepository extends JpaRepository<TestAttempt, Long> 
           + "ORDER BY ta.submittedAt DESC")
   Page<TestAttempt> findSubmittedAttemptsByStudent(
       @Param("studentId") Long studentId, Pageable pageable);
+
+  /**
+   * Finds all submitted attempts by student without pagination.
+   *
+   * @param studentId the student's user ID
+   * @return list of all submitted attempts ordered by newest first
+   */
+  @Query(
+      "SELECT ta FROM TestAttempt ta "
+          + "LEFT JOIN FETCH ta.test "
+          + "WHERE ta.student.id = :studentId "
+          + "AND ta.status = 'SUBMITTED' "
+          + "ORDER BY ta.submittedAt DESC")
+  List<TestAttempt> findAllSubmittedAttemptsByStudent(@Param("studentId") Long studentId);
 }
