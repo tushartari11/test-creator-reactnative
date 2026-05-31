@@ -60,6 +60,7 @@ public class TestSupportController {
   @Value("${spring.data.redis.database:0}")
   private String redisDb;
 
+  /** Returns the health status of the test-support module and its active scenario count. */
   @GetMapping("/health")
   public HealthResponse health() {
     return new HealthResponse(
@@ -70,6 +71,7 @@ public class TestSupportController {
         props.isEnabled());
   }
 
+  /** Creates a new isolated test scenario and returns its ID. */
   @PostMapping("/scenarios")
   public ResponseEntity<CreateScenarioResponse> createScenario() {
     UUID id = service.createScenario();

@@ -74,7 +74,7 @@ public interface ProctoringViolationRepository extends JpaRepository<ProctoringV
    * Finds violations of a specific severity or higher.
    *
    * @param attemptId the attempt ID
-   * @param severity minimum severity
+   * @param severities minimum severity levels to include
    * @return list of violations
    */
   @Query(

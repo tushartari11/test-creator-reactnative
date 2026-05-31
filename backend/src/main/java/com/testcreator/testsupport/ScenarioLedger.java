@@ -22,6 +22,7 @@ public class ScenarioLedger {
 
   private final Map<UUID, ScenarioEntities> scenarios = new ConcurrentHashMap<>();
 
+  /** Creates a new scenario and returns its UUID. */
   public UUID create() {
     UUID id = UUID.randomUUID();
     scenarios.put(id, new ScenarioEntities(Instant.now()));
@@ -32,6 +33,7 @@ public class ScenarioLedger {
     return scenarios.containsKey(scenarioId);
   }
 
+  /** Returns the entities for the given scenario, throwing if it does not exist. */
   public ScenarioEntities get(UUID scenarioId) {
     ScenarioEntities entities = scenarios.get(scenarioId);
     if (entities == null) {
@@ -44,6 +46,7 @@ public class ScenarioLedger {
     return scenarios.remove(scenarioId);
   }
 
+  /** Returns all scenario IDs whose creation time is before {@code cutoff}. */
   public Set<UUID> scenarioIdsOlderThan(Instant cutoff) {
     Set<UUID> stale = new HashSet<>();
     scenarios.forEach(
@@ -76,6 +79,7 @@ public class ScenarioLedger {
     }
   }
 
+  /** Thrown when a requested scenario ID is not found in the ledger. */
   public static class ScenarioNotFoundException extends RuntimeException {
     public ScenarioNotFoundException(UUID id) {
       super("Scenario not found: " + id);

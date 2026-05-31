@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+/** Configuration properties for the test-support module (active on the e2e profile only). */
 @Component
 @Profile("e2e")
 @ConfigurationProperties(prefix = "app.test-support")

@@ -20,6 +20,7 @@ public class TestSupportSweeper {
   private final TestSupportService service;
   private final TestSupportProperties props;
 
+  /** Periodically removes stale scenarios that have exceeded their TTL. */
   @Scheduled(fixedDelayString = "${app.test-support.sweeper-interval-ms:900000}")
   public void sweep() {
     Instant cutoff = Instant.now().minus(props.getScenarioTtl());

@@ -67,12 +67,14 @@ public class TestSupportService {
   private final JwtUtil jwtUtil;
   private final RedisTemplate<String, Object> redisTemplate;
 
+  /** Creates a new scenario ledger entry and returns its ID. */
   public UUID createScenario() {
     UUID id = ledger.create();
     log.debug("Created scenario {}", id);
     return id;
   }
 
+  /** Creates a user with the given role and registers it under the scenario for cleanup. */
   @Transactional
   public CreateUserResponse createUser(UUID scenarioId, CreateUserRequest req, Role role) {
     ScenarioEntities entities = ledger.get(scenarioId);
@@ -96,6 +98,7 @@ public class TestSupportService {
         user.getId(), user.getEmail(), user.getName(), user.getRole(), jwt);
   }
 
+  /** Creates a test with questions and registers all IDs under the scenario for cleanup. */
   @Transactional
   public CreateTestResponse createTest(UUID scenarioId, CreateTestRequest req) {
     ScenarioEntities entities = ledger.get(scenarioId);
@@ -132,7 +135,7 @@ public class TestSupportService {
     test = testRepository.save(test);
     entities.testIds.add(test.getId());
 
-    List<QuestionDescriptor> qDescriptors = new ArrayList<>();
+    List<QuestionDescriptor> questionDescriptors = new ArrayList<>();
     for (int i = 0; i < seeds.size(); i++) {
       QuestionSeed seed = seeds.get(i);
       validateSeed(seed, i);
@@ -158,13 +161,18 @@ public class TestSupportService {
         entities.optionIds.add(option.getId());
         optionIds.add(option.getId());
       }
-      qDescriptors.add(new QuestionDescriptor(question.getId(), i + 1, optionIds));
+      questionDescriptors.add(new QuestionDescriptor(question.getId(), i + 1, optionIds));
     }
 
     return new CreateTestResponse(
-        test.getId(), test.getTitle(), test.getAccessCode(), test.getTestDate(), qDescriptors);
+        test.getId(),
+        test.getTitle(),
+        test.getAccessCode(),
+        test.getTestDate(),
+        questionDescriptors);
   }
 
+  /** Creates a guest access session for the given test and scenario. */
   @Transactional
   public CreateGuestAccessResponse createGuestAccess(
       UUID scenarioId, CreateGuestAccessRequest req) {
@@ -190,6 +198,7 @@ public class TestSupportService {
         session.getId(), session.getGuestToken(), session.getExpiresAt(), test.getAccessCode());
   }
 
+  /** Issues a JWT for the given user without verifying credentials (test use only). */
   @Transactional(readOnly = true)
   public LoginAsResponse loginAs(UUID scenarioId, Long userId) {
     ledger.get(scenarioId);
@@ -222,7 +231,7 @@ public class TestSupportService {
         entities.proctoringViolationIds, proctoringViolationRepository::deleteAllByIdInBatch);
     deleteByIds(entities.studentAnswerIds, studentAnswerRepository::deleteAllByIdInBatch);
 
-    Set<Long> attemptIds = new HashSet<>(entities.testAttemptIds);
+    final Set<Long> attemptIds = new HashSet<>(entities.testAttemptIds);
     deleteByIds(entities.testAttemptIds, testAttemptRepository::deleteAllByIdInBatch);
 
     deleteByIds(entities.guestSessionIds, guestSessionRepository::deleteAllByIdInBatch);
@@ -234,6 +243,7 @@ public class TestSupportService {
     purgeRedisKeysForAttempts(attemptIds);
   }
 
+  /** Deletes all scenarios created before {@code cutoff} and returns the count removed. */
   public int sweepStale(Instant cutoff) {
     Set<UUID> stale = ledger.scenarioIdsOlderThan(cutoff);
     for (UUID id : stale) {

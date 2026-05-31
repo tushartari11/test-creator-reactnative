@@ -132,7 +132,7 @@ public interface TestRepository extends JpaRepository<Test, Long> {
   /**
    * Archives old published tests (bulk operation).
    *
-   * @param daysAgo number of days in the past
+   * @param cutoffDate tests with a date before this will be archived
    * @return number of tests archived
    */
   @Modifying
