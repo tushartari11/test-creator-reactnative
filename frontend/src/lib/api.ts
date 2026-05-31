@@ -354,6 +354,33 @@ export const StudentAPI = {
     api.get(`/student/results/${attemptId}`) as Promise<TestResultDTO>,
 };
 
+export type StudentAttemptSummary = {
+  attemptId: number;
+  studentId: number | null;
+  studentName: string;
+  studentEmail: string;
+  isGuest: boolean;
+  score: number | null;
+  correctAnswers: number | null;
+  wrongAnswers: number | null;
+  skippedAnswers: number | null;
+  result: 'PASS' | 'FAIL' | null;
+  status: 'IN_PROGRESS' | 'SUBMITTED' | 'EXPIRED';
+  startedAt: string;
+  submittedAt: string | null;
+  timeTakenSeconds: number | null;
+  violationCount: number;
+  hasCriticalViolations: boolean;
+  tabSwitchCount: number;
+};
+
+export const AnalyticsAPI = {
+  getStudentResults: (testId: number, page = 0, size = 50) =>
+    api.get(`/analytics/tests/${testId}/students`, { page, size }) as Promise<PageResponse<StudentAttemptSummary>>,
+  resetStudentAttempt: (testId: number, studentId: number) =>
+    api.delete(`/tests/${testId}/students/${studentId}/attempt`) as Promise<null>,
+};
+
 export const GuestAPI = {
   validateAccessCode: (accessCode: string) =>
     api.get(`/guest/access/${accessCode}`, {}, false) as Promise<GuestTestAccessDTO>,
