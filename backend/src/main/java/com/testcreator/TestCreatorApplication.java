@@ -9,10 +9,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * Main application class for Online Test Creator.
  *
- * <p>
- * High-performance online examination platform with advanced proctoring
- * features.
- * Designed to handle 100K-1M queries per second (QPS).
+ * <p>High-performance online examination platform with advanced proctoring features. Designed to
+ * handle 100K-1M queries per second (QPS).
  *
  * @author Test Creator Team
  * @version 0.0.1-SNAPSHOT
@@ -23,7 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class TestCreatorApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(TestCreatorApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(TestCreatorApplication.class, args);
+  }
 }

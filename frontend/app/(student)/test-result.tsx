@@ -9,7 +9,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { ReviewQuestion, StudentAPI, TestResultDTO } from '../../src/lib/api';
+import { ReviewQuestion, StudentAPI, TestResultDto } from '../../src/lib/api';
 import { C } from '../../src/lib/theme';
 import { formatDate } from '../../src/lib/utils';
 
@@ -18,7 +18,7 @@ export default function TestResult() {
   const { width } = useWindowDimensions();
   const isMedium = width > 768;
 
-  const [result, setResult] = useState<TestResultDTO | null>(null);
+  const [result, setResult] = useState<TestResultDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState<Set<number>>(new Set());

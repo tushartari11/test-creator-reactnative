@@ -1,33 +1,26 @@
 package com.testcreator.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.testcreator.dto.test.ImportTestResponse;
+import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
-import java.io.InputStream;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 class TestServiceCsvImportTest {
 
-  @Autowired
-  private TestService testService;
+  @Autowired private TestService testService;
 
   @Test
   public void importTestFromCsv_validFile_parsesQuestionsCorrectly() throws Exception {
     // Arrange
     ClassPathResource resource = new ClassPathResource("static/Question_Sheet.csv");
     InputStream is = resource.getInputStream();
-    MockMultipartFile file = new MockMultipartFile(
-        "file",
-        "Question_Sheet.csv",
-        "text/csv",
-        is
-    );
+    MockMultipartFile file = new MockMultipartFile("file", "Question_Sheet.csv", "text/csv", is);
     String testName = "Sample Test";
     int duration = 30;
 
@@ -39,8 +32,8 @@ class TestServiceCsvImportTest {
     assertEquals(testName, response.getTestName());
     assertEquals(duration, response.getDurationMinutes());
     assertNotNull(response.getQuestions());
-    assertTrue(response.getErrors() == null || response.getErrors().isEmpty(),
-        "Should have no errors");
+    assertTrue(
+        response.getErrors() == null || response.getErrors().isEmpty(), "Should have no errors");
     assertEquals(2, response.getQuestions().size());
 
     // First question

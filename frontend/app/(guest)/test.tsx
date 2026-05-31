@@ -11,7 +11,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { GuestAPI, QuestionWithOptionsDTO, TestAttemptDTO } from '../../src/lib/api';
+import { GuestAPI, QuestionWithOptionsDto, TestAttemptDto } from '../../src/lib/api';
 import { TIMER_DANGER, TIMER_WARNING } from '../../src/lib/config';
 import { C } from '../../src/lib/theme';
 
@@ -24,11 +24,11 @@ export default function GuestTest() {
   const { width } = useWindowDimensions();
   const isMedium = width > 768;
 
-  const attempt: TestAttemptDTO | null = (() => {
+  const attempt: TestAttemptDto | null = (() => {
     try { return attemptData ? JSON.parse(attemptData) : null; } catch { return null; }
   })();
 
-  const [questions] = useState<QuestionWithOptionsDTO[]>(attempt?.questions ?? []);
+  const [questions] = useState<QuestionWithOptionsDto[]>(attempt?.questions ?? []);
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());
   const [remainingSeconds, setRemainingSeconds] = useState(Math.max(0, (attempt?.remainingMinutes ?? 0) * 60));
   const [currentIndex, setCurrentIndex] = useState(0);

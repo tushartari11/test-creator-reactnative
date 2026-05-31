@@ -1,11 +1,22 @@
 package com.testcreator.service;
 
 import com.testcreator.dto.student.AvailableTestDTO;
-import com.testcreator.entity.*;
+import com.testcreator.entity.AttemptStatus;
+import com.testcreator.entity.Question;
+import com.testcreator.entity.Test;
+import com.testcreator.entity.TestAttempt;
+import com.testcreator.entity.TestStatus;
+import com.testcreator.entity.User;
 import com.testcreator.exception.BusinessException;
 import com.testcreator.exception.ResourceNotFoundException;
-import com.testcreator.repository.*;
+import com.testcreator.repository.QuestionRepository;
+import com.testcreator.repository.TestAttemptRepository;
+import com.testcreator.repository.TestRepository;
+import com.testcreator.repository.UserRepository;
 import com.testcreator.security.SecurityUtil;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,16 +25,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Service for managing student test operations.
  *
- * <p>
- * Handles viewing available tests, checking attempt eligibility, and retrieving
- * results.
+ * <p>Handles viewing available tests, checking attempt eligibility, and retrieving results.
  */
 @Service
 @RequiredArgsConstructor
@@ -31,135 +36,146 @@ import java.util.stream.Collectors;
 @Transactional
 public class StudentTestService {
 
-    private final TestRepository testRepository;
-    private final TestAttemptRepository testAttemptRepository;
-    private final UserRepository userRepository;
-    private final SecurityUtil securityUtil;
-    private static final int MAX_ATTEMPTS_PER_TEST = 1; // Initially allow 1 attempt, can be made configurable
+  private final TestRepository testRepository;
+  private final TestAttemptRepository testAttemptRepository;
+  private final UserRepository userRepository;
+  private final SecurityUtil securityUtil;
+  private static final int MAX_ATTEMPTS_PER_TEST =
+      1; // Initially allow 1 attempt, can be made configurable
 
-    /**
-     * Gets list of available tests for the student.
-     *
-     * @param pageable pagination info
-     * @return page of available tests
-     */
-    @Transactional(readOnly = true)
-    public Page<AvailableTestDTO> getAvailableTests(Pageable pageable) {
-        log.info("Fetching available tests for student");
+  /**
+   * Gets list of available tests for the student.
+   *
+   * @param pageable pagination info
+   * @return page of available tests
+   */
+  @Transactional(readOnly = true)
+  public Page<AvailableTestDTO> getAvailableTests(Pageable pageable) {
+    log.info("Fetching available tests for student");
 
-        String currentUserEmail = securityUtil.getCurrentUserEmail();
-        User student = userRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    String currentUserEmail = securityUtil.getCurrentUserEmail();
+    User student =
+        userRepository
+            .findByEmail(currentUserEmail)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Only get published tests
-        Page<Test> publishedTests = testRepository.findPublishedTests(pageable);
+    // Only get published tests
+    Page<Test> publishedTests = testRepository.findPublishedTests(pageable);
 
-        List<AvailableTestDTO> dtos = publishedTests.getContent().stream()
-                .map(test -> {
-                    // Check if student has already attempted this test
-                    long attemptCount = testAttemptRepository.countByTestIdAndStudentId(test.getId(), student.getId());
-                    Boolean alreadyAttempted = attemptCount > 0;
+    List<AvailableTestDTO> dtos =
+        publishedTests.getContent().stream()
+            .map(
+                test -> {
+                  // Check if student has already attempted this test
+                  long attemptCount =
+                      testAttemptRepository.countByTestIdAndStudentId(
+                          test.getId(), student.getId());
+                  Boolean alreadyAttempted = attemptCount > 0;
 
-                    // Get previous result if any
-                    Integer previousScore = null;
-                    String previousResult = null;
+                  // Get previous result if any
+                  Integer previousScore = null;
+                  String previousResult = null;
 
-                    if (alreadyAttempted) {
-                        TestAttempt lastAttempt = testAttemptRepository.findLatestAttemptByTestAndStudent(
-                                test.getId(), student.getId()).orElse(null);
+                  if (alreadyAttempted) {
+                    TestAttempt lastAttempt =
+                        testAttemptRepository
+                            .findLatestAttemptByTestAndStudent(test.getId(), student.getId())
+                            .orElse(null);
 
-                        if (lastAttempt != null && lastAttempt.getStatus() == AttemptStatus.SUBMITTED) {
-                            previousScore = lastAttempt.getScore();
-                            previousResult = lastAttempt.getResult().name();
-                        }
+                    if (lastAttempt != null && lastAttempt.getStatus() == AttemptStatus.SUBMITTED) {
+                      previousScore = lastAttempt.getScore();
+                      previousResult = lastAttempt.getResult().name();
                     }
+                  }
 
-                    return AvailableTestDTO.builder()
-                            .id(test.getId())
-                            .title(test.getTitle())
-                            .description(test.getDescription())
-                            .totalQuestions(test.getTotalQuestions())
-                            .durationMinutes(test.getDurationMinutes())
-                            .passingScore(test.getPassingScore())
-                            .testDate(test.getTestDate())
-                            .teacherName(test.getCreatedBy().getName())
-                            .alreadyAttempted(alreadyAttempted)
-                            .previousScore(previousScore)
-                            .previousResult(previousResult)
-                            .build();
+                  return AvailableTestDTO.builder()
+                      .id(test.getId())
+                      .title(test.getTitle())
+                      .description(test.getDescription())
+                      .totalQuestions(test.getTotalQuestions())
+                      .durationMinutes(test.getDurationMinutes())
+                      .passingScore(test.getPassingScore())
+                      .testDate(test.getTestDate())
+                      .teacherName(test.getCreatedBy().getName())
+                      .alreadyAttempted(alreadyAttempted)
+                      .previousScore(previousScore)
+                      .previousResult(previousResult)
+                      .build();
                 })
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
 
-        return new PageImpl<>(dtos, pageable, publishedTests.getTotalElements());
+    return new PageImpl<>(dtos, pageable, publishedTests.getTotalElements());
+  }
+
+  /**
+   * Validates if student can attempt a test.
+   *
+   * @param testId test ID
+   * @param student the student entity
+   * @throws BusinessException if student cannot attempt the test
+   */
+  public void validateCanAttempt(Long testId, User student) {
+    log.info("Validating can attempt for student: {} and test: {}", student.getId(), testId);
+
+    Test test =
+        testRepository
+            .findById(testId)
+            .orElseThrow(() -> new ResourceNotFoundException("Test not found with id: " + testId));
+
+    // Test must be published
+    if (test.getStatus() != TestStatus.PUBLISHED) {
+      throw new BusinessException("This test is not available for attempting");
     }
 
-    /**
-     * Validates if student can attempt a test.
-     *
-     * @param testId  test ID
-     * @param student the student entity
-     * @throws BusinessException if student cannot attempt the test
-     */
-    public void validateCanAttempt(Long testId, User student) {
-        log.info("Validating can attempt for student: {} and test: {}", student.getId(), testId);
-
-        Test test = testRepository.findById(testId)
-                .orElseThrow(() -> new ResourceNotFoundException("Test not found with id: " + testId));
-
-        // Test must be published
-        if (test.getStatus() != TestStatus.PUBLISHED) {
-            throw new BusinessException("This test is not available for attempting");
-        }
-
-        // Check if test date has passed (if specified)
-        if (test.getTestDate() != null && LocalDateTime.now().isAfter(test.getTestDate())) {
-            throw new BusinessException("This test is no longer available");
-        }
-
-        // Check if student has already attempted this test (configurable limit)
-        long attemptCount = testAttemptRepository.countByTestIdAndStudentId(testId, student.getId());
-        if (attemptCount >= MAX_ATTEMPTS_PER_TEST) {
-            throw new BusinessException("You have already attempted this test");
-        }
+    // Check if test date has passed (if specified)
+    if (test.getTestDate() != null && LocalDateTime.now().isAfter(test.getTestDate())) {
+      throw new BusinessException("This test is no longer available");
     }
 
-    /**
-     * Checks if a test is available.
-     *
-     * @param testId test ID
-     * @return true if available, false otherwise
-     */
-    @Transactional(readOnly = true)
-    public boolean isTestAvailable(Long testId) {
-        Test test = testRepository.findById(testId)
-                .orElse(null);
+    // Check if student has already attempted this test (configurable limit)
+    long attemptCount = testAttemptRepository.countByTestIdAndStudentId(testId, student.getId());
+    if (attemptCount >= MAX_ATTEMPTS_PER_TEST) {
+      throw new BusinessException("You have already attempted this test");
+    }
+  }
 
-        if (test == null) {
-            return false;
-        }
+  /**
+   * Checks if a test is available.
+   *
+   * @param testId test ID
+   * @return true if available, false otherwise
+   */
+  @Transactional(readOnly = true)
+  public boolean isTestAvailable(Long testId) {
+    Test test = testRepository.findById(testId).orElse(null);
 
-        // Must be published
-        if (test.getStatus() != TestStatus.PUBLISHED) {
-            return false;
-        }
-
-        // Check date if specified
-        if (test.getTestDate() != null && LocalDateTime.now().isAfter(test.getTestDate())) {
-            return false;
-        }
-
-        return true;
+    if (test == null) {
+      return false;
     }
 
-    /**
-     * Gets test details by ID for student view.
-     *
-     * @param testId test ID
-     * @return test with questions and options
-     */
-    @Transactional(readOnly = true)
-    public Test getTestWithQuestions(Long testId) {
-        return testRepository.findByIdWithQuestionsAndOptions(testId)
-                .orElseThrow(() -> new ResourceNotFoundException("Test not found with id: " + testId));
+    // Must be published
+    if (test.getStatus() != TestStatus.PUBLISHED) {
+      return false;
     }
+
+    // Check date if specified
+    if (test.getTestDate() != null && LocalDateTime.now().isAfter(test.getTestDate())) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Gets test details by ID for student view.
+   *
+   * @param testId test ID
+   * @return test with questions and options
+   */
+  @Transactional(readOnly = true)
+  public Test getTestWithQuestions(Long testId) {
+    return testRepository
+        .findByIdWithQuestionsAndOptions(testId)
+        .orElseThrow(() -> new ResourceNotFoundException("Test not found with id: " + testId));
+  }
 }

@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for submitting a guest answer.
- * Uses option ID instead of option number for easier frontend integration.
+ * Request DTO for submitting a guest answer. Uses option ID instead of option number for easier
+ * frontend integration.
  */
 @Data
 @Builder
@@ -19,5 +19,4 @@ public class GuestStartRequest {
 
   @Schema(description = "The name of the Guest", example = "John Doe")
   private String guestName;
-
 }

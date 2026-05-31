@@ -6,26 +6,25 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO for authentication response (login/register).
- */
+/** DTO for authentication response (login/register). */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthResponse {
 
-    private String token;
-    private String tokenType;
-    private Long expiresIn;
-    private UserDTO user;
+  private String token;
+  private String tokenType;
+  private Long expiresIn;
+  private UserDTO user;
 
-    public static AuthResponse of(String token, Long expiresIn, UserDTO user) {
-        return AuthResponse.builder()
-                .token(token)
-                .tokenType("Bearer")
-                .expiresIn(expiresIn)
-                .user(user)
-                .build();
-    }
+  /** Factory method to create an AuthResponse. */
+  public static AuthResponse of(String token, Long expiresIn, UserDTO user) {
+    return AuthResponse.builder()
+        .token(token)
+        .tokenType("Bearer")
+        .expiresIn(expiresIn)
+        .user(user)
+        .build();
+  }
 }

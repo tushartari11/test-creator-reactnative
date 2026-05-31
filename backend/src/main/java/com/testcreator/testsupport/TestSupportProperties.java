@@ -10,27 +10,47 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.test-support")
 public class TestSupportProperties {
 
-    /** Master switch. Beans only register when this is true. */
-    private boolean enabled = false;
+  /** Master switch. Beans only register when this is true. */
+  private boolean enabled = false;
 
-    /** Datasource URL must contain this suffix in the DB name. Prevents accidental prod use. */
-    private String allowedDbUrlSuffix = "_e2e";
+  /** Datasource URL must contain this suffix in the DB name. Prevents accidental prod use. */
+  private String allowedDbUrlSuffix = "_e2e";
 
-    /** Scenarios older than this are removed by the sweeper. */
-    private Duration scenarioTtl = Duration.ofHours(1);
+  /** Scenarios older than this are removed by the sweeper. */
+  private Duration scenarioTtl = Duration.ofHours(1);
 
-    /** Sweeper polling interval, in milliseconds. */
-    private long sweeperIntervalMs = 900_000;
+  /** Sweeper polling interval, in milliseconds. */
+  private long sweeperIntervalMs = 900_000;
 
-    public boolean isEnabled() { return enabled; }
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-    public String getAllowedDbUrlSuffix() { return allowedDbUrlSuffix; }
-    public void setAllowedDbUrlSuffix(String allowedDbUrlSuffix) { this.allowedDbUrlSuffix = allowedDbUrlSuffix; }
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 
-    public Duration getScenarioTtl() { return scenarioTtl; }
-    public void setScenarioTtl(Duration scenarioTtl) { this.scenarioTtl = scenarioTtl; }
+  public String getAllowedDbUrlSuffix() {
+    return allowedDbUrlSuffix;
+  }
 
-    public long getSweeperIntervalMs() { return sweeperIntervalMs; }
-    public void setSweeperIntervalMs(long sweeperIntervalMs) { this.sweeperIntervalMs = sweeperIntervalMs; }
+  public void setAllowedDbUrlSuffix(String allowedDbUrlSuffix) {
+    this.allowedDbUrlSuffix = allowedDbUrlSuffix;
+  }
+
+  public Duration getScenarioTtl() {
+    return scenarioTtl;
+  }
+
+  public void setScenarioTtl(Duration scenarioTtl) {
+    this.scenarioTtl = scenarioTtl;
+  }
+
+  public long getSweeperIntervalMs() {
+    return sweeperIntervalMs;
+  }
+
+  public void setSweeperIntervalMs(long sweeperIntervalMs) {
+    this.sweeperIntervalMs = sweeperIntervalMs;
+  }
 }
