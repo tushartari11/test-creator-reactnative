@@ -175,7 +175,7 @@ public class ResultService {
     }
 
     // Calculate statistics
-    double averageScore =
+    final double averageScore =
         submittedAttempts.stream()
             .mapToDouble(a -> a.getScore() != null ? a.getScore() : 0)
             .average()
@@ -184,7 +184,7 @@ public class ResultService {
     long passCount =
         submittedAttempts.stream().filter(a -> a.getResult() == ResultStatus.PASS).count();
 
-    double passPercentage = (double) passCount / submittedAttempts.size() * 100;
+    final double passPercentage = (double) passCount / submittedAttempts.size() * 100;
 
     // Question-wise analytics
     Map<Integer, Integer> questionCorrectCount = new HashMap<>();

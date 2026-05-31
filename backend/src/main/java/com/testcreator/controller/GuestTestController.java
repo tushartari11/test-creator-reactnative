@@ -323,7 +323,7 @@ public class GuestTestController {
             .tabSwitchCount(0)
             .build();
 
-    TestAttempt savedAttempt = testAttemptRepository.save(attempt);
+    final TestAttempt savedAttempt = testAttemptRepository.save(attempt);
 
     // Mark session as used
     session.setIsUsed(true);

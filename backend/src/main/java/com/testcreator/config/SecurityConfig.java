@@ -24,6 +24,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/** Spring Security configuration — JWT filter, CORS, and BCrypt password encoding. */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -33,6 +34,7 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthFilter;
   private final UserDetailsService userDetailsService;
 
+  /** Configures the security filter chain with JWT auth and public endpoint rules. */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
@@ -88,6 +90,7 @@ public class SecurityConfig {
     return http.build();
   }
 
+  /** Configures CORS to allow requests from known frontend origins. */
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
@@ -115,6 +118,7 @@ public class SecurityConfig {
     return new BCryptPasswordEncoder(12);
   }
 
+  /** Wires the DAO authentication provider with the user details service and password encoder. */
   @Bean
   public AuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

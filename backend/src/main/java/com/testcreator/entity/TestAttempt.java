@@ -135,6 +135,7 @@ public class TestAttempt {
   }
 
   // Business logic helper methods
+  /** Returns true if the attempt has exceeded the allowed duration. */
   public boolean isExpired(Integer durationMinutes) {
     if (startedAt == null || durationMinutes == null) {
       return false;
@@ -143,6 +144,7 @@ public class TestAttempt {
     return LocalDateTime.now().isAfter(expiryTime);
   }
 
+  /** Returns the absolute expiry time of the attempt, or null if start time is unknown. */
   public LocalDateTime getExpiryTime(Integer durationMinutes) {
     if (startedAt == null || durationMinutes == null) {
       return null;

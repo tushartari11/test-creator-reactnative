@@ -24,7 +24,7 @@ public final class TestSupportDtos {
       String questionText,
       List<String> options, // exactly 3 entries
       Integer correctOptionNumber // 1-based, in [1,3]
-      ) {}
+  ) {}
 
   /** Request to create a test. */
   public record CreateTestRequest(
@@ -35,7 +35,7 @@ public final class TestSupportDtos {
       Boolean publish,
       Boolean generateAccessCode,
       List<QuestionSeed> questions // null → 3 default questions
-      ) {}
+  ) {}
 
   /** Descriptor for a question in a created test. */
   public record QuestionDescriptor(Long questionId, Integer questionNumber, List<Long> optionIds) {}

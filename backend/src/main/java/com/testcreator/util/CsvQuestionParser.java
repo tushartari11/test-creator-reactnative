@@ -10,8 +10,11 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
+/** Parses a CSV file into a list of {@link QuestionRequest} objects. */
 @Slf4j
 public class CsvQuestionParser {
+
+  /** Parses the CSV file and populates {@code errors} with any row-level problems found. */
   public static List<QuestionRequest> parse(MultipartFile file, List<String> errors) {
     List<QuestionRequest> questions = new ArrayList<>();
     try (BufferedReader reader =
@@ -31,8 +34,8 @@ public class CsvQuestionParser {
           continue;
         }
         try {
-          int questionNumber = Integer.parseInt(cols[0].trim());
-          String questionText = cols[1].trim();
+          final int questionNumber = Integer.parseInt(cols[0].trim());
+          final String questionText = cols[1].trim();
           List<OptionRequest> options = new ArrayList<>();
           for (int i = 2; i <= 4; i++) {
             options.add(

@@ -3,8 +3,8 @@ package com.testcreator.service;
 import com.testcreator.dto.test.CreateTestRequest;
 import com.testcreator.dto.test.ImportTestResponse;
 import com.testcreator.dto.test.QuestionRequest;
-import com.testcreator.dto.test.TestDto;
 import com.testcreator.dto.test.TestDetailDto;
+import com.testcreator.dto.test.TestDto;
 import com.testcreator.dto.test.TestListDto;
 import com.testcreator.entity.Option;
 import com.testcreator.entity.Question;
@@ -138,27 +138,27 @@ public class TestService {
     request
         .getQuestions()
         .forEach(
-            qReq -> {
+            questionReq -> {
               Question question =
                   Question.builder()
                       .test(savedTest)
-                      .questionNumber(qReq.getQuestionNumber())
-                      .questionText(qReq.getQuestionText())
-                      .explanation(qReq.getExplanation())
-                      .correctOptionNumber(qReq.getCorrectOptionNumber())
+                      .questionNumber(questionReq.getQuestionNumber())
+                      .questionText(questionReq.getQuestionText())
+                      .explanation(questionReq.getExplanation())
+                      .correctOptionNumber(questionReq.getCorrectOptionNumber())
                       .build();
 
               Question savedQuestion = questionRepository.save(question);
 
               // Create options
-              qReq.getOptions()
+              questionReq.getOptions()
                   .forEach(
-                      oReq -> {
+                      optionReq -> {
                         Option option =
                             Option.builder()
                                 .question(savedQuestion)
-                                .optionNumber(oReq.getOptionNumber())
-                                .optionText(oReq.getOptionText())
+                                .optionNumber(optionReq.getOptionNumber())
+                                .optionText(optionReq.getOptionText())
                                 .build();
                         optionRepository.save(option);
                       });
@@ -283,24 +283,24 @@ public class TestService {
     request
         .getQuestions()
         .forEach(
-            qReq -> {
+            questionReq -> {
               Question question =
                   Question.builder()
                       .test(test)
-                      .questionNumber(qReq.getQuestionNumber())
-                      .questionText(qReq.getQuestionText())
-                      .explanation(qReq.getExplanation())
-                      .correctOptionNumber(qReq.getCorrectOptionNumber())
+                      .questionNumber(questionReq.getQuestionNumber())
+                      .questionText(questionReq.getQuestionText())
+                      .explanation(questionReq.getExplanation())
+                      .correctOptionNumber(questionReq.getCorrectOptionNumber())
                       .build();
 
-              qReq.getOptions()
+              questionReq.getOptions()
                   .forEach(
-                      oReq -> {
+                      optionReq -> {
                         Option option =
                             Option.builder()
                                 .question(question)
-                                .optionNumber(oReq.getOptionNumber())
-                                .optionText(oReq.getOptionText())
+                                .optionNumber(optionReq.getOptionNumber())
+                                .optionText(optionReq.getOptionText())
                                 .build();
                         question.getOptions().add(option);
                       });
