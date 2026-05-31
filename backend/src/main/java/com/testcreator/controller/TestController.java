@@ -1,6 +1,7 @@
 package com.testcreator.controller;
 
 import com.testcreator.dto.test.*;
+import com.testcreator.service.TestAttemptService;
 import com.testcreator.service.TestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class TestController {
 
         private final TestService testService;
+        private final TestAttemptService testAttemptService;
 
         /**
          * Imports questions from a CSV file and returns parsed questions for review.
@@ -254,6 +256,30 @@ public class TestController {
 
                 log.info("Delete test request - testId: {}", testId);
                 testService.deleteTest(testId);
+                return ResponseEntity.noContent().build();
+        }
+
+        /**
+         * Resets a student's attempt for a test, allowing them to retake it.
+         *
+         * @param testId    test ID
+         * @param studentId student user ID
+         * @return 204 No Content
+         */
+        @DeleteMapping("/{testId}/students/{studentId}/attempt")
+        @Operation(summary = "Reset student attempt", description = "Deletes a student's attempt for a test so they can retake it. Only the teacher who owns the test can do this.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "204", description = "Attempt reset successfully"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "403", description = "Cannot reset attempt for this test"),
+                        @ApiResponse(responseCode = "404", description = "Test or attempt not found")
+        })
+        public ResponseEntity<Void> resetStudentAttempt(
+                        @Parameter(description = "Test ID") @PathVariable Long testId,
+                        @Parameter(description = "Student user ID") @PathVariable Long studentId) {
+
+                log.info("Reset attempt request - testId: {}, studentId: {}", testId, studentId);
+                testAttemptService.resetStudentAttempt(testId, studentId);
                 return ResponseEntity.noContent().build();
         }
 }

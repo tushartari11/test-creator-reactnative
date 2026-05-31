@@ -184,7 +184,7 @@ export default function TeacherDashboard() {
                 {test.status === 'ARCHIVED' && (
                   <ActionBtn label="Re-publish" filled color={C.SUCCESS} onPress={() => handlePublish(test)} />
                 )}
-                <ActionBtn label="Analytics" onPress={() => comingSoon('Analytics')} />
+                <ActionBtn label="Analytics" onPress={() => router.push({ pathname: '/(teacher)/analytics', params: { testId: test.id, testTitle: test.title } })} />
                 <ActionBtn label="Delete" filled color={C.DANGER} onPress={() => handleDelete(test)} />
               </>
             )}
@@ -223,6 +223,7 @@ export default function TeacherDashboard() {
               {test.status === 'ARCHIVED' && (
                 <ActionBtn label="Re-publish" filled color={C.SUCCESS} onPress={() => handlePublish(test)} />
               )}
+              <ActionBtn label="Analytics" onPress={() => router.push({ pathname: '/(teacher)/analytics', params: { testId: test.id, testTitle: test.title } })} />
               <ActionBtn label="Delete" filled color={C.DANGER} onPress={() => handleDelete(test)} />
             </>
           )}
