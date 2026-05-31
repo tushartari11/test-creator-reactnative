@@ -4,7 +4,7 @@ import com.testcreator.dto.proctoring.ReportViolationRequest;
 import com.testcreator.dto.proctoring.ViolationResponseDto;
 import com.testcreator.dto.student.AvailableTestDto;
 import com.testcreator.dto.student.CachedAnswerDto;
-import com.testcreator.dto.student.StudentResultSummaryDto;
+import com.testcreator.dto.student.StudentResultsSummaryDto;
 import com.testcreator.dto.student.SubmitAnswerRequest;
 import com.testcreator.dto.student.TestAttemptDto;
 import com.testcreator.dto.student.TestResultDto;
@@ -199,11 +199,9 @@ public class StudentTestController {
   }
 
   /**
-   * Gets all test results for the student.
+   * Gets all test results for the student with aggregate stats.
    *
-   * @param page page number
-   * @param size page size
-   * @return page of results
+   * @return summary with results list and computed stats
    */
   @GetMapping("/results")
   @Operation(
@@ -213,15 +211,9 @@ public class StudentTestController {
     @ApiResponse(responseCode = "200", description = "Results retrieved successfully"),
     @ApiResponse(responseCode = "401", description = "Unauthorized")
   })
-  public ResponseEntity<Page<StudentResultSummaryDto>> getAllResults(
-      @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
-      @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) @Max(100)
-          int size) {
-
-    log.info("Get all results request - page: {}, size: {}", page, size);
-    Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submittedAt"));
-    Page<StudentResultSummaryDto> results =
-        testAttemptService.getAllResultsForCurrentStudent(pageable);
+  public ResponseEntity<StudentResultsSummaryDto> getAllResults() {
+    log.info("Get all results request");
+    StudentResultsSummaryDto results = testAttemptService.getAllResultsForCurrentStudent();
     return ResponseEntity.ok(results);
   }
 

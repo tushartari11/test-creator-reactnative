@@ -4,6 +4,7 @@ import com.testcreator.dto.student.CachedAnswerDto;
 import com.testcreator.dto.student.QuestionWithOptionsDto;
 import com.testcreator.dto.student.StudentAnswerRecordDto;
 import com.testcreator.dto.student.StudentResultSummaryDto;
+import com.testcreator.dto.student.StudentResultsSummaryDto;
 import com.testcreator.dto.student.SubmitAnswerRequest;
 import com.testcreator.dto.student.TestAttemptDto;
 import com.testcreator.dto.student.TestResultDto;
@@ -33,8 +34,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -378,13 +377,12 @@ public class TestAttemptService {
   }
 
   /**
-   * Gets all submitted results for the current student.
+   * Gets all submitted results for the current student with aggregate stats.
    *
-   * @param pageable pagination info
-   * @return page of result summaries
+   * @return summary with results list and computed stats
    */
   @Transactional(readOnly = true)
-  public Page<StudentResultSummaryDto> getAllResultsForCurrentStudent(Pageable pageable) {
+  public StudentResultsSummaryDto getAllResultsForCurrentStudent() {
     log.info("Getting all results for current student");
 
     String currentUserEmail = securityUtil.getCurrentUserEmail();
@@ -393,18 +391,43 @@ public class TestAttemptService {
             .findByEmail(currentUserEmail)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    return testAttemptRepository
-        .findSubmittedAttemptsByStudent(student.getId(), pageable)
-        .map(
-            attempt ->
-                StudentResultSummaryDto.builder()
-                    .attemptId(attempt.getId())
-                    .testId(attempt.getTest().getId())
-                    .testTitle(attempt.getTest().getTitle())
-                    .score(attempt.getScore() != null ? attempt.getScore().doubleValue() : null)
-                    .result(attempt.getResult() != null ? attempt.getResult().name() : null)
-                    .submittedAt(attempt.getSubmittedAt())
-                    .build());
+    List<TestAttempt> attempts =
+        testAttemptRepository.findAllSubmittedAttemptsByStudent(student.getId());
+
+    List<StudentResultSummaryDto> results =
+        attempts.stream()
+            .map(
+                attempt ->
+                    StudentResultSummaryDto.builder()
+                        .attemptId(attempt.getId())
+                        .testId(attempt.getTest().getId())
+                        .testTitle(attempt.getTest().getTitle())
+                        .score(
+                            attempt.getScore() != null ? attempt.getScore().doubleValue() : null)
+                        .result(attempt.getResult() != null ? attempt.getResult().name() : null)
+                        .submittedAt(attempt.getSubmittedAt())
+                        .build())
+            .toList();
+
+    int total = results.size();
+    int passCount =
+        (int) results.stream().filter(r -> "PASS".equals(r.getResult())).count();
+    double averageScore =
+        total > 0
+            ? results.stream()
+                .filter(r -> r.getScore() != null)
+                .mapToDouble(StudentResultSummaryDto::getScore)
+                .average()
+                .orElse(0.0)
+            : 0.0;
+
+    return StudentResultsSummaryDto.builder()
+        .results(results)
+        .totalAttempts(total)
+        .passCount(passCount)
+        .failCount(total - passCount)
+        .averageScore(averageScore)
+        .build();
   }
 
   /**
