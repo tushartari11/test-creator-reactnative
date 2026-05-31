@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,6 +12,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import type { ScrollView as ScrollViewType } from 'react-native';
 import {
   AvailableTest,
   PageResponse,
@@ -33,6 +34,10 @@ export default function StudentDashboard() {
   const [summary, setSummary] = useState<StudentResultsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const scrollRef = useRef<ScrollViewType>(null);
+  const availableTestsY = useRef(0);
+  const myResultsY = useRef(0);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -191,13 +196,14 @@ export default function StudentDashboard() {
         {isMedium && (
           <View style={styles.sidebar}>
             <NavItem label="Dashboard" active />
-            <NavItem label="Available Tests" onPress={() => {}} />
-            <NavItem label="My Results" onPress={() => {}} />
+            <NavItem label="Available Tests" onPress={() => scrollRef.current?.scrollTo({ y: availableTestsY.current, animated: true })} />
+            <NavItem label="My Results" onPress={() => scrollRef.current?.scrollTo({ y: myResultsY.current, animated: true })} />
           </View>
         )}
 
         {/* Main content */}
         <ScrollView
+          ref={scrollRef}
           style={styles.contentScroll}
           contentContainerStyle={styles.contentInner}
           showsVerticalScrollIndicator={false}
@@ -241,7 +247,7 @@ export default function StudentDashboard() {
           )}
 
           {/* Available Tests */}
-          <View style={styles.tableCard}>
+          <View style={styles.tableCard} onLayout={e => { availableTestsY.current = e.nativeEvent.layout.y; }}>
             <Text style={styles.sectionTitle}>Available Tests</Text>
 
             {isMedium && (
@@ -275,7 +281,7 @@ export default function StudentDashboard() {
           </View>
 
           {/* Past Results */}
-          <View style={[styles.tableCard, { marginTop: 24 }]}>
+          <View style={[styles.tableCard, { marginTop: 24 }]} onLayout={e => { myResultsY.current = e.nativeEvent.layout.y; }}>
             <Text style={styles.sectionTitle}>My Results</Text>
 
             {isMedium && (summary?.results?.length ?? 0) > 0 && (
