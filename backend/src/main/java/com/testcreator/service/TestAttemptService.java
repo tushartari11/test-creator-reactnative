@@ -19,6 +19,7 @@ import com.testcreator.exception.BusinessException;
 import com.testcreator.exception.ForbiddenException;
 import com.testcreator.exception.ResourceNotFoundException;
 import com.testcreator.repository.OptionRepository;
+import com.testcreator.repository.ProctoringViolationRepository;
 import com.testcreator.repository.QuestionRepository;
 import com.testcreator.repository.StudentAnswerRepository;
 import com.testcreator.repository.TestAttemptRepository;
@@ -51,6 +52,7 @@ public class TestAttemptService {
 
     private final TestAttemptRepository testAttemptRepository;
     private final StudentAnswerRepository studentAnswerRepository;
+    private final ProctoringViolationRepository proctoringViolationRepository;
     private final TestRepository testRepository;
     private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
@@ -367,6 +369,43 @@ public class TestAttemptService {
                         .result(attempt.getResult() != null ? attempt.getResult().name() : null)
                         .submittedAt(attempt.getSubmittedAt())
                         .build());
+    }
+
+    /**
+     * Resets (deletes) a student's attempt for a test, allowing them to retake it.
+     * Only the teacher who created the test may call this.
+     *
+     * @param testId    the test ID
+     * @param studentId the student's user ID
+     */
+    public void resetStudentAttempt(Long testId, Long studentId) {
+        log.info("Resetting attempt for student {} on test {}", studentId, testId);
+
+        String teacherEmail = securityUtil.getCurrentUserEmail();
+        Test test = testRepository.findById(testId)
+                .orElseThrow(() -> new ResourceNotFoundException("Test not found with id: " + testId));
+
+        if (!test.getCreatedBy().getEmail().equals(teacherEmail)) {
+            throw new ForbiddenException("You don't have permission to reset attempts for this test");
+        }
+
+        TestAttempt attempt = testAttemptRepository.findByTestIdAndStudentId(testId, studentId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No attempt found for student " + studentId + " on test " + testId));
+
+        Long attemptId = attempt.getId();
+
+        proctoringViolationRepository.deleteAllByAttemptId(attemptId);
+        studentAnswerRepository.deleteByAttemptId(attemptId);
+        testAttemptRepository.delete(attempt);
+
+        try {
+            answerCacheService.clearAttemptCache(attemptId);
+        } catch (Exception e) {
+            log.warn("Failed to clear Redis cache for attempt {}: {}", attemptId, e.getMessage());
+        }
+
+        log.info("Attempt {} reset successfully", attemptId);
     }
 
     /**
