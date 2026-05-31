@@ -166,6 +166,8 @@ public interface TestAttemptRepository extends JpaRepository<TestAttempt, Long> 
         */
        long countByTestIdAndStudentIdAndStatus(Long testId, Long studentId, AttemptStatus status);
 
+       Optional<TestAttempt> findFirstByTestIdAndStudentIdAndStatus(Long testId, Long studentId, AttemptStatus status);
+
        /**
         * Finds the latest attempt by test and student.
         *
