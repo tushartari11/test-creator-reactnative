@@ -101,7 +101,7 @@ export default function EditTestScreen() {
       setStartTime(data.testDate ?? '');
       setQuestions(data.questions.map((q, i) => ({
         ...q,
-        options: q.options.map(o => o.optionText) as unknown as QuestionForm['options'],
+        options: q.options.map(o => ({ optionNumber: o.optionNumber, optionText: o.optionText })),
         _key: String(i),
       })));
     } catch (e: unknown) {
@@ -132,9 +132,9 @@ export default function EditTestScreen() {
         questionText: q.questionText.trim(),
         explanation: q.explanation.trim(),
         correctOptionNumber: q.correctOptionNumber,
-        options: (q.options as unknown as string[]).map((opt: string, oi: number) => ({
+        options: q.options.map((opt, oi) => ({
           optionNumber: oi + 1,
-          optionText: opt.trim(),
+          optionText: opt.optionText.trim(),
         })),
       })),
     };
@@ -181,13 +181,12 @@ export default function EditTestScreen() {
 
   function openEditModal(idx: number) {
     const q = questions[idx];
-    const opts = q.options as unknown as string[];
     setModal({
       open: true, idx,
       questionText: q.questionText,
       explanation: q.explanation,
       correctOptionNumber: q.correctOptionNumber,
-      options: [opts[0] ?? '', opts[1] ?? '', opts[2] ?? ''],
+      options: [q.options[0]?.optionText ?? '', q.options[1]?.optionText ?? '', q.options[2]?.optionText ?? ''],
     });
     setModalError('');
   }
@@ -214,7 +213,7 @@ export default function EditTestScreen() {
       questionText: modal.questionText.trim(),
       explanation: modal.explanation.trim(),
       correctOptionNumber: modal.correctOptionNumber,
-      options: modal.options.map((opt, oi) => ({ optionNumber: oi + 1, optionText: opt.trim() })) as unknown as QuestionForm['options'],
+      options: modal.options.map((opt, oi) => ({ optionNumber: oi + 1, optionText: opt.trim() })),
       _key: modal.idx >= 0 ? questions[modal.idx]._key : String(Date.now()),
     };
 

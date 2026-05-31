@@ -234,9 +234,8 @@ public class TestService {
             throw new ForbiddenException("You don't have permission to update this test");
         }
 
-        // Can only update draft tests
-        if (test.getStatus() != TestStatus.DRAFT) {
-            throw new BusinessException("Can only update tests in DRAFT status");
+        if (test.getStatus() == TestStatus.PUBLISHED) {
+            throw new BusinessException("Cannot update a published test. Archive it first, then edit.");
         }
 
         // Validate questions count
@@ -304,9 +303,8 @@ public class TestService {
             throw new ForbiddenException("You don't have permission to publish this test");
         }
 
-        // Can only publish draft tests
-        if (test.getStatus() != TestStatus.DRAFT) {
-            throw new BusinessException("Can only publish tests in DRAFT status");
+        if (test.getStatus() == TestStatus.PUBLISHED) {
+            throw new BusinessException("Test is already published");
         }
 
         test.setStatus(TestStatus.PUBLISHED);
