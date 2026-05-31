@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,12 +84,13 @@ public class TestAttemptService {
             throw new BusinessException("This test is not available");
         }
 
-        // Check for existing active attempts
-        long existingAttempts = testAttemptRepository.countByTestIdAndStudentIdAndStatus(
+        // Resume existing active attempt if one exists
+        Optional<TestAttempt> existingAttempt = testAttemptRepository.findFirstByTestIdAndStudentIdAndStatus(
                 testId, student.getId(), AttemptStatus.IN_PROGRESS);
 
-        if (existingAttempts > 0) {
-            throw new BusinessException("You already have an active attempt for this test");
+        if (existingAttempt.isPresent()) {
+            log.info("Resuming existing attempt: {}", existingAttempt.get().getId());
+            return mapToTestAttemptDTO(existingAttempt.get(), test);
         }
 
         // Create new attempt

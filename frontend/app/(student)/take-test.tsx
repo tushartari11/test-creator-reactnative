@@ -11,6 +11,25 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+
+function showAlert(
+  title: string,
+  message: string,
+  buttons?: { text: string; style?: 'default' | 'cancel' | 'destructive'; onPress?: () => void }[]
+) {
+  if (Platform.OS !== 'web') {
+    Alert.alert(title, message, buttons);
+    return;
+  }
+  if (!buttons?.length) {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  const confirmBtn = buttons.find(b => b.style !== 'cancel');
+  if (window.confirm(`${title}\n\n${message}`)) {
+    confirmBtn?.onPress?.();
+  }
+}
 import {
   CachedAnswerDTO,
   QuestionWithOptionsDTO,
@@ -49,13 +68,13 @@ export default function TakeTest() {
     } catch (e: unknown) {
       submittedRef.current = false;
       setIsSubmitting(false);
-      Alert.alert('Submit Failed', (e as Error).message || 'Could not submit test. Please try again.');
+      showAlert('Submit Failed', (e as Error).message || 'Could not submit test. Please try again.');
     }
   }, []);
 
   useEffect(() => {
     if (!testId) {
-      Alert.alert('Error', 'No test selected.');
+      showAlert('Error', 'No test selected.');
       router.back();
       return;
     }
@@ -75,7 +94,7 @@ export default function TakeTest() {
           setAnswers(recovered);
         }
       } catch (e: unknown) {
-        Alert.alert('Error', (e as Error).message || 'Failed to start test.');
+        showAlert('Error', (e as Error).message || 'Failed to start test.');
         router.back();
       } finally {
         setIsLoading(false);
@@ -91,7 +110,7 @@ export default function TakeTest() {
         if (s <= 1) {
           clearInterval(t);
           if (attemptId && !submittedRef.current) {
-            Alert.alert("Time's Up", 'Your time has expired. Submitting now.', [
+            showAlert("Time's Up", 'Your time has expired. Submitting now.', [
               { text: 'OK', onPress: () => doSubmit(attemptId) },
             ]);
           }
@@ -142,7 +161,7 @@ export default function TakeTest() {
 
   function handleSubmitPress() {
     if (!attemptId) return;
-    Alert.alert('Submit Test', 'Are you sure? You cannot change answers after submitting.', [
+    showAlert('Submit Test', 'Are you sure? You cannot change answers after submitting.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Submit', style: 'destructive', onPress: () => doSubmit(attemptId) },
     ]);
