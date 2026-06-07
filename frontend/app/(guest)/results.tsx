@@ -1,12 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { TestResultDTO } from '../../src/lib/api';
+import { TestResultDto } from '../../src/lib/api';
 import { C } from '../../src/lib/theme';
 
 export default function GuestResults() {
   const { resultData } = useLocalSearchParams<{ resultData: string }>();
 
-  const result: TestResultDTO | null = (() => {
+  const result: TestResultDto | null = (() => {
     try { return resultData ? JSON.parse(resultData) : null; } catch { return null; }
   })();
 
@@ -14,7 +14,7 @@ export default function GuestResults() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Result data not found.</Text>
-        <TouchableOpacity style={styles.btn} onPress={() => router.replace('/(guest)' as any)}>
+        <TouchableOpacity style={styles.btn} onPress={() => router.replace('/(guest)/access' as any)}>
           <Text style={styles.btnText}>Back to Home</Text>
         </TouchableOpacity>
       </View>
@@ -47,7 +47,7 @@ export default function GuestResults() {
 
         <TouchableOpacity
           style={[styles.btn, { marginBottom: 12 }]}
-          onPress={() => router.replace('/(guest)' as any)}
+          onPress={() => router.replace('/(guest)/access' as any)}
           activeOpacity={0.8}
         >
           <Text style={styles.btnText}>Take Another Test</Text>

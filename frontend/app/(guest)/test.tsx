@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -11,9 +10,10 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { GuestAPI, QuestionWithOptionsDTO, TestAttemptDTO } from '../../src/lib/api';
+import { GuestAPI, QuestionWithOptionsDto, TestAttemptDto } from '../../src/lib/api';
 import { TIMER_DANGER, TIMER_WARNING } from '../../src/lib/config';
 import { C } from '../../src/lib/theme';
+import { showAlert } from '../../src/lib/utils';
 
 export default function GuestTest() {
   const { attemptId, guestToken, attemptData } = useLocalSearchParams<{
@@ -24,11 +24,11 @@ export default function GuestTest() {
   const { width } = useWindowDimensions();
   const isMedium = width > 768;
 
-  const attempt: TestAttemptDTO | null = (() => {
+  const attempt: TestAttemptDto | null = (() => {
     try { return attemptData ? JSON.parse(attemptData) : null; } catch { return null; }
   })();
 
-  const [questions] = useState<QuestionWithOptionsDTO[]>(attempt?.questions ?? []);
+  const [questions] = useState<QuestionWithOptionsDto[]>(attempt?.questions ?? []);
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());
   const [remainingSeconds, setRemainingSeconds] = useState(Math.max(0, (attempt?.remainingMinutes ?? 0) * 60));
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,7 +51,7 @@ export default function GuestTest() {
     } catch (e: unknown) {
       submittedRef.current = false;
       setIsSubmitting(false);
-      Alert.alert('Submit Failed', (e as Error).message || 'Could not submit. Please try again.');
+      showAlert('Submit Failed', (e as Error).message || 'Could not submit. Please try again.');
     }
   }, [parsedAttemptId, guestToken]);
 
@@ -63,7 +63,7 @@ export default function GuestTest() {
         if (s <= 1) {
           clearInterval(t);
           if (!submittedRef.current) {
-            Alert.alert("Time's Up", 'Your time has expired. Submitting now.', [
+            showAlert("Time's Up", 'Your time has expired. Submitting now.', [
               { text: 'OK', onPress: () => submitTest() },
             ]);
           }
@@ -94,12 +94,12 @@ export default function GuestTest() {
       return next;
     });
     GuestAPI.submitAnswer(parsedAttemptId, questionId, optionId).catch(() => {
-      Alert.alert('Warning', 'Failed to save answer. Check your connection and try again.');
+      showAlert('Warning', 'Failed to save answer. Check your connection and try again.');
     });
   }
 
   function handleSubmitPress() {
-    Alert.alert('Submit Test', 'Are you sure? You cannot change your answers after submitting.', [
+    showAlert('Submit Test', 'Are you sure? You cannot change your answers after submitting.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Submit', style: 'destructive', onPress: submitTest },
     ]);
@@ -117,7 +117,7 @@ export default function GuestTest() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Test data not found.</Text>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(guest)' as any)}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(guest)/access' as any)}>
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
       </View>

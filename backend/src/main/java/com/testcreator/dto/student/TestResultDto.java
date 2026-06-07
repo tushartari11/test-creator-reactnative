@@ -11,15 +11,15 @@ import lombok.NoArgsConstructor;
 /**
  * DTO for test result after submission.
  *
- * <p>
- * Contains scored results with correct answers revealed.
+ * <p>Contains scored results with correct answers revealed.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Test result after submission")
-public class TestResultDTO {
+@SuppressWarnings("checkstyle:AbbreviationAsWordInNameCheck")
+public class TestResultDto {
 
   @Schema(description = "Attempt ID", example = "101")
   private Long attemptId;
@@ -61,17 +61,15 @@ public class TestResultDTO {
   private Integer timeTakenSeconds;
 
   @Schema(description = "Questions with answers revealed")
-  private List<ReviewQuestionDTO> reviewQuestions;
+  private List<ReviewQuestionDto> reviewQuestions;
 
-  /**
-   * Nested review question DTO with answers revealed.
-   */
+  /** Nested review question DTO with answers revealed. */
   @Data
   @Builder
   @NoArgsConstructor
   @AllArgsConstructor
   @Schema(description = "Question with answer revealed")
-  public static class ReviewQuestionDTO {
+  public static class ReviewQuestionDto {
 
     @Schema(description = "Question ID", example = "1")
     private Long id;
@@ -82,7 +80,9 @@ public class TestResultDTO {
     @Schema(description = "Question text", example = "What is Java?")
     private String questionText;
 
-    @Schema(description = "Explanation why this is correct", example = "Java is a programming language and computing platform")
+    @Schema(
+        description = "Explanation why this is correct",
+        example = "Java is a programming language and computing platform")
     private String explanation;
 
     @Schema(description = "Correct option number", example = "1")
@@ -95,18 +95,16 @@ public class TestResultDTO {
     private Boolean isCorrect;
 
     @Schema(description = "All options with correctness marked")
-    private List<ReviewOptionDTO> options;
+    private List<ReviewOptionDto> options;
   }
 
-  /**
-   * Option with correctness indicator.
-   */
+  /** Option with correctness indicator. */
   @Data
   @Builder
   @NoArgsConstructor
   @AllArgsConstructor
   @Schema(description = "Option with answer status")
-  public static class ReviewOptionDTO {
+  public static class ReviewOptionDto {
 
     @Schema(description = "Option number", example = "1")
     private Integer optionNumber;

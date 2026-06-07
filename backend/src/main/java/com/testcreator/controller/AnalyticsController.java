@@ -1,9 +1,9 @@
 package com.testcreator.controller;
 
-import com.testcreator.dto.analytics.QuestionAnalyticsDTO;
-import com.testcreator.dto.analytics.StudentAttemptSummaryDTO;
-import com.testcreator.dto.analytics.TestAnalyticsDTO;
-import com.testcreator.dto.analytics.TestSummaryDTO;
+import com.testcreator.dto.analytics.QuestionAnalyticsDto;
+import com.testcreator.dto.analytics.StudentAttemptSummaryDto;
+import com.testcreator.dto.analytics.TestAnalyticsDto;
+import com.testcreator.dto.analytics.TestSummaryDto;
 import com.testcreator.security.SecurityUtil;
 import com.testcreator.service.TeacherAnalyticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,9 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST controller for teacher analytics and results.
  *
- * <p>
- * Provides endpoints for viewing test analytics, student results,
- * and exporting data.
+ * <p>Provides endpoints for viewing test analytics, student results, and exporting data.
  */
 @RestController
 @RequestMapping("/api/analytics")
@@ -47,149 +45,174 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Analytics", description = "Test analytics and results for teachers")
 @SecurityRequirement(name = "Bearer Authentication")
 @PreAuthorize("hasRole('TEACHER')")
+@SuppressWarnings("checkstyle:AbbreviationAsWordInNameCheck")
 public class AnalyticsController {
 
-    private final TeacherAnalyticsService analyticsService;
-    private final SecurityUtil securityUtil;
+  private final TeacherAnalyticsService analyticsService;
+  private final SecurityUtil securityUtil;
 
-    /**
-     * Gets list of tests with summary analytics.
-     *
-     * @param page page number
-     * @param size page size
-     * @return page of test summaries
-     */
-    @GetMapping("/tests")
-    @Operation(summary = "Get test summaries", description = "Retrieves list of teacher's tests with summary analytics")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Test summaries retrieved", content = @Content(schema = @Schema(implementation = TestSummaryDTO.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized")
-    })
-    public ResponseEntity<Page<TestSummaryDTO>> getTestSummaries(
-            @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
+  /**
+   * Gets list of tests with summary analytics.
+   *
+   * @param page page number
+   * @param size page size
+   * @return page of test summaries
+   */
+  @GetMapping("/tests")
+  @Operation(
+      summary = "Get test summaries",
+      description = "Retrieves list of teacher's tests with summary analytics")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Test summaries retrieved",
+        content = @Content(schema = @Schema(implementation = TestSummaryDto.class))),
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+  })
+  public ResponseEntity<Page<TestSummaryDto>> getTestSummaries(
+      @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
+      @Parameter(description = "Page size") @RequestParam(defaultValue = "10") @Min(1) @Max(100)
+          int size) {
 
-        String teacherEmail = securityUtil.getCurrentUserEmail();
-        log.info("Getting test summaries for teacher: {}", teacherEmail);
+    String teacherEmail = securityUtil.getCurrentUserEmail();
+    log.info("Getting test summaries for teacher: {}", teacherEmail);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<TestSummaryDTO> summaries = analyticsService.getTestSummaries(teacherEmail, pageable);
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    Page<TestSummaryDto> summaries = analyticsService.getTestSummaries(teacherEmail, pageable);
 
-        return ResponseEntity.ok(summaries);
-    }
+    return ResponseEntity.ok(summaries);
+  }
 
-    /**
-     * Gets comprehensive analytics for a specific test.
-     *
-     * @param testId the test ID
-     * @return full test analytics
-     */
-    @GetMapping("/tests/{testId}")
-    @Operation(summary = "Get test analytics", description = "Retrieves comprehensive analytics for a specific test including score distribution, question analysis, and student results")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Analytics retrieved", content = @Content(schema = @Schema(implementation = TestAnalyticsDTO.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "404", description = "Test not found")
-    })
-    public ResponseEntity<TestAnalyticsDTO> getTestAnalytics(
-            @Parameter(description = "Test ID") @PathVariable Long testId) {
+  /**
+   * Gets comprehensive analytics for a specific test.
+   *
+   * @param testId the test ID
+   * @return full test analytics
+   */
+  @GetMapping("/tests/{testId}")
+  @Operation(
+      summary = "Get test analytics",
+      description =
+          "Retrieves comprehensive analytics for a specific test including score distribution,"
+              + " question analysis, and student results")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Analytics retrieved",
+        content = @Content(schema = @Schema(implementation = TestAnalyticsDto.class))),
+    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+    @ApiResponse(responseCode = "404", description = "Test not found")
+  })
+  public ResponseEntity<TestAnalyticsDto> getTestAnalytics(
+      @Parameter(description = "Test ID") @PathVariable Long testId) {
 
-        String teacherEmail = securityUtil.getCurrentUserEmail();
-        log.info("Getting analytics for test: {} by teacher: {}", testId, teacherEmail);
+    String teacherEmail = securityUtil.getCurrentUserEmail();
+    log.info("Getting analytics for test: {} by teacher: {}", testId, teacherEmail);
 
-        TestAnalyticsDTO analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
+    TestAnalyticsDto analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
 
-        return ResponseEntity.ok(analytics);
-    }
+    return ResponseEntity.ok(analytics);
+  }
 
-    /**
-     * Gets student results for a test (paginated).
-     *
-     * @param testId the test ID
-     * @param page   page number
-     * @param size   page size
-     * @return page of student results
-     */
-    @GetMapping("/tests/{testId}/students")
-    @Operation(summary = "Get student results", description = "Retrieves paginated student results for a specific test")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Student results retrieved", content = @Content(schema = @Schema(implementation = StudentAttemptSummaryDTO.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "404", description = "Test not found")
-    })
-    public ResponseEntity<Page<StudentAttemptSummaryDTO>> getStudentResults(
-            @Parameter(description = "Test ID") @PathVariable Long testId,
-            @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
-            @Parameter(description = "Page size") @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
-            @Parameter(description = "Sort by") @RequestParam(defaultValue = "submittedAt") String sortBy,
-            @Parameter(description = "Sort direction") @RequestParam(defaultValue = "DESC") String sortDir) {
+  /**
+   * Gets student results for a test (paginated).
+   *
+   * @param testId the test ID
+   * @param page page number
+   * @param size page size
+   * @return page of student results
+   */
+  @GetMapping("/tests/{testId}/students")
+  @Operation(
+      summary = "Get student results",
+      description = "Retrieves paginated student results for a specific test")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Student results retrieved",
+        content = @Content(schema = @Schema(implementation = StudentAttemptSummaryDto.class))),
+    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+    @ApiResponse(responseCode = "404", description = "Test not found")
+  })
+  public ResponseEntity<Page<StudentAttemptSummaryDto>> getStudentResults(
+      @Parameter(description = "Test ID") @PathVariable Long testId,
+      @Parameter(description = "Page number") @RequestParam(defaultValue = "0") @Min(0) int page,
+      @Parameter(description = "Page size") @RequestParam(defaultValue = "20") @Min(1) @Max(100)
+          int size,
+      @Parameter(description = "Sort by") @RequestParam(defaultValue = "submittedAt") String sortBy,
+      @Parameter(description = "Sort direction") @RequestParam(defaultValue = "DESC")
+          String sortDir) {
 
-        String teacherEmail = securityUtil.getCurrentUserEmail();
-        log.info("Getting student results for test: {}", testId);
+    String teacherEmail = securityUtil.getCurrentUserEmail();
+    log.info("Getting student results for test: {}", testId);
 
-        Sort sort = sortDir.equalsIgnoreCase("ASC")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+    Sort sort =
+        sortDir.equalsIgnoreCase("ASC")
+            ? Sort.by(sortBy).ascending()
+            : Sort.by(sortBy).descending();
+    Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<StudentAttemptSummaryDTO> results = analyticsService.getStudentResults(testId, teacherEmail, pageable);
+    Page<StudentAttemptSummaryDto> results =
+        analyticsService.getStudentResults(testId, teacherEmail, pageable);
 
-        return ResponseEntity.ok(results);
-    }
+    return ResponseEntity.ok(results);
+  }
 
-    /**
-     * Exports test results as CSV file.
-     *
-     * @param testId the test ID
-     * @return CSV file download
-     */
-    @GetMapping("/tests/{testId}/export/csv")
-    @Operation(summary = "Export results to CSV", description = "Downloads test results as a CSV file")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "CSV file generated"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "404", description = "Test not found")
-    })
-    public ResponseEntity<byte[]> exportResultsToCSV(
-            @Parameter(description = "Test ID") @PathVariable Long testId) {
+  /**
+   * Exports test results as CSV file.
+   *
+   * @param testId the test ID
+   * @return CSV file download
+   */
+  @GetMapping("/tests/{testId}/export/csv")
+  @Operation(
+      summary = "Export results to CSV",
+      description = "Downloads test results as a CSV file")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "CSV file generated"),
+    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+    @ApiResponse(responseCode = "404", description = "Test not found")
+  })
+  public ResponseEntity<byte[]> exportResultsToCsv(
+      @Parameter(description = "Test ID") @PathVariable Long testId) {
 
-        String teacherEmail = securityUtil.getCurrentUserEmail();
-        log.info("Exporting results to CSV for test: {}", testId);
+    String teacherEmail = securityUtil.getCurrentUserEmail();
+    log.info("Exporting results to CSV for test: {}", testId);
 
-        String csv = analyticsService.exportResultsToCSV(testId, teacherEmail);
-        byte[] csvBytes = csv.getBytes();
+    String csv = analyticsService.exportResultsToCsv(testId, teacherEmail);
+    byte[] csvBytes = csv.getBytes();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType("text/csv"));
-        headers.setContentDispositionFormData("attachment", "test_results_" + testId + ".csv");
-        headers.setContentLength(csvBytes.length);
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.parseMediaType("text/csv"));
+    headers.setContentDispositionFormData("attachment", "test_results_" + testId + ".csv");
+    headers.setContentLength(csvBytes.length);
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(csvBytes);
-    }
+    return ResponseEntity.ok().headers(headers).body(csvBytes);
+  }
 
-    /**
-     * Gets question-level analytics for a test.
-     *
-     * @param testId the test ID
-     * @return list of question analytics
-     */
-    @GetMapping("/tests/{testId}/questions")
-    @Operation(summary = "Get question analytics", description = "Retrieves per-question analytics showing difficulty and answer distribution")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Question analytics retrieved"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized"),
-            @ApiResponse(responseCode = "404", description = "Test not found")
-    })
-    public ResponseEntity<List<QuestionAnalyticsDTO>> getQuestionAnalytics(
-            @Parameter(description = "Test ID") @PathVariable Long testId) {
+  /**
+   * Gets question-level analytics for a test.
+   *
+   * @param testId the test ID
+   * @return list of question analytics
+   */
+  @GetMapping("/tests/{testId}/questions")
+  @Operation(
+      summary = "Get question analytics",
+      description = "Retrieves per-question analytics showing difficulty and answer distribution")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Question analytics retrieved"),
+    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+    @ApiResponse(responseCode = "404", description = "Test not found")
+  })
+  public ResponseEntity<List<QuestionAnalyticsDto>> getQuestionAnalytics(
+      @Parameter(description = "Test ID") @PathVariable Long testId) {
 
-        String teacherEmail = securityUtil.getCurrentUserEmail();
-        log.info("Getting question analytics for test: {}", testId);
+    String teacherEmail = securityUtil.getCurrentUserEmail();
+    log.info("Getting question analytics for test: {}", testId);
 
-        TestAnalyticsDTO analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
+    TestAnalyticsDto analytics = analyticsService.getTestAnalytics(testId, teacherEmail);
 
-        return ResponseEntity.ok(analytics.getQuestionAnalytics());
-    }
+    return ResponseEntity.ok(analytics.getQuestionAnalytics());
+  }
 }

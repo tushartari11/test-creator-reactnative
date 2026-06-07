@@ -11,13 +11,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { GuestAPI, GuestTestDetailDTO, TestAttemptDTO } from '../../src/lib/api';
+import { GuestAPI, GuestTestDetailDto, TestAttemptDto } from '../../src/lib/api';
 import { C } from '../../src/lib/theme';
 
 export default function GuestPreview() {
   const { guestToken } = useLocalSearchParams<{ guestToken: string }>();
 
-  const [detail, setDetail] = useState<GuestTestDetailDTO | null>(null);
+  const [detail, setDetail] = useState<GuestTestDetailDto | null>(null);
   const [guestName, setGuestName] = useState('');
   const [loadingDetail, setLoadingDetail] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -36,7 +36,7 @@ export default function GuestPreview() {
     setStarting(true);
     setError('');
     try {
-      const attempt: TestAttemptDTO = await GuestAPI.startAttempt(guestToken, guestName.trim());
+      const attempt: TestAttemptDto = await GuestAPI.startAttempt(guestToken, guestName.trim());
       router.replace({
         pathname: '/(guest)/test',
         params: {
@@ -63,7 +63,7 @@ export default function GuestPreview() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(guest)' as any)}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(guest)/access' as any)}>
           <Text style={styles.backBtnText}>Try Another Code</Text>
         </TouchableOpacity>
       </View>

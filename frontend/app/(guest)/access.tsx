@@ -19,7 +19,7 @@ export default function GuestEntry() {
   const [error, setError] = useState('');
 
   async function handleContinue() {
-    const trimmed = code.trim().toUpperCase();
+    const trimmed = code.trim();
     if (!trimmed) return;
     setLoading(true);
     setError('');
@@ -53,7 +53,7 @@ export default function GuestEntry() {
           onChangeText={t => { setCode(t); setError(''); }}
           placeholder="e.g. ABC123"
           placeholderTextColor={C.TEXT_SEC}
-          autoCapitalize="characters"
+          autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="go"
           onSubmitEditing={handleContinue}
