@@ -418,6 +418,7 @@ public class GuestTestController {
    * @return success response
    */
   @PostMapping("/attempts/{attemptId}/answer")
+  @Transactional
   @Operation(
       summary = "Submit guest answer",
       description = "Submit answer for a single question during guest test")

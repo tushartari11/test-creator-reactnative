@@ -94,7 +94,7 @@ export default function TestAnalytics() {
   }
 
   function renderRow({ item }: { item: StudentAttemptSummary }) {
-    const isResetting = resettingId === item.studentId;
+    const isResetting = resettingId !== null && resettingId === item.studentId;
     const statusColor = item.status === 'SUBMITTED'
       ? (item.result === 'PASS' ? C.SUCCESS : C.DANGER)
       : item.status === 'IN_PROGRESS' ? C.WARNING : C.TEXT_SEC;
@@ -387,6 +387,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   resetBtn: {
+    alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 5,
