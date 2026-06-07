@@ -14,7 +14,7 @@ export default function GuestResults() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>Result data not found.</Text>
-        <TouchableOpacity style={styles.btn} onPress={() => router.replace('/(guest)' as any)}>
+        <TouchableOpacity style={styles.btn} onPress={() => router.replace('/(guest)/access' as any)}>
           <Text style={styles.btnText}>Back to Home</Text>
         </TouchableOpacity>
       </View>
@@ -47,7 +47,7 @@ export default function GuestResults() {
 
         <TouchableOpacity
           style={[styles.btn, { marginBottom: 12 }]}
-          onPress={() => router.replace('/(guest)' as any)}
+          onPress={() => router.replace('/(guest)/access' as any)}
           activeOpacity={0.8}
         >
           <Text style={styles.btnText}>Take Another Test</Text>

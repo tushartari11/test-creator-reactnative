@@ -228,7 +228,7 @@ export default function LandingPage() {
           )}
 
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/(guest)' as any)}>
+            <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/(guest)/access' as any)}>
               <Text style={styles.guestBtnText}>Enter Access Code</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/(auth)/login')}>

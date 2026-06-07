@@ -63,7 +63,7 @@ export default function GuestPreview() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(guest)' as any)}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(guest)/access' as any)}>
           <Text style={styles.backBtnText}>Try Another Code</Text>
         </TouchableOpacity>
       </View>
