@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev, feature/**]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  backend:
+    name: Backend — Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and test
+        run: ./mvnw verify -B -Dspring.profiles.active=test
+        env:
+          # Unit tests (Surefire) use H2 via the test profile.
+          # IT tests (Failsafe) override profile via @ActiveProfiles("e2e") and
+          # spin up Postgres themselves via Testcontainers.
+          # Redis service above satisfies the e2e profile's localhost:6379 expectation.
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
+
+  frontend:
+    name: Frontend — TypeScript & Web Export
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Expo web export
+        run: npx expo export --platform web
+        env:
+          EXPO_PUBLIC_APP_ENV: ci
+          EXPO_PUBLIC_API_URL: http://localhost:8080/api

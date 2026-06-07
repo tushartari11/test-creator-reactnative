@@ -71,10 +71,10 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.card, isMedium && styles.cardMedium]}>
+        <View style={[styles.card, isMedium && styles.cardMedium]} testID="register-card">
           {/* Header */}
           <View style={styles.cardHeader}>
-            <Text style={styles.heading}>Create Account</Text>
+            <Text style={styles.heading} testID="register-heading">Create Account</Text>
             <Text style={styles.subheading}>Join TestCreator today</Text>
           </View>
           <View style={styles.divider} />
@@ -86,6 +86,7 @@ export default function RegisterScreen() {
               <View style={[styles.field, isMedium && styles.fieldHalf]}>
                 <Text style={styles.label}>First Name</Text>
                 <TextInput
+                  testID="register-first-name"
                   style={styles.input}
                   placeholder="John"
                   placeholderTextColor={C.TEXT_SEC}
@@ -101,6 +102,7 @@ export default function RegisterScreen() {
                 <Text style={styles.label}>Last Name</Text>
                 <TextInput
                   ref={lastNameRef}
+                  testID="register-last-name"
                   style={styles.input}
                   placeholder="Doe"
                   placeholderTextColor={C.TEXT_SEC}
@@ -118,6 +120,7 @@ export default function RegisterScreen() {
               <Text style={styles.label}>Email</Text>
               <TextInput
                 ref={emailRef}
+                testID="register-email"
                 style={styles.input}
                 placeholder="john@example.com"
                 placeholderTextColor={C.TEXT_SEC}
@@ -136,6 +139,7 @@ export default function RegisterScreen() {
               <Text style={styles.label}>Password</Text>
               <TextInput
                 ref={passwordRef}
+                testID="register-password"
                 style={styles.input}
                 placeholder="At least 8 characters"
                 placeholderTextColor={C.TEXT_SEC}
@@ -152,6 +156,7 @@ export default function RegisterScreen() {
               <Text style={styles.label}>Confirm Password</Text>
               <TextInput
                 ref={confirmRef}
+                testID="register-confirm-password"
                 style={styles.input}
                 placeholder="Confirm your password"
                 placeholderTextColor={C.TEXT_SEC}
@@ -168,6 +173,7 @@ export default function RegisterScreen() {
               <Text style={styles.label}>I am a...</Text>
               <View style={styles.roleRow}>
                 <TouchableOpacity
+                  testID="register-role-teacher"
                   style={[styles.roleBtn, role === 'TEACHER' && styles.roleBtnActive]}
                   onPress={() => setRole('TEACHER')}
                   activeOpacity={0.8}
@@ -180,6 +186,7 @@ export default function RegisterScreen() {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
+                  testID="register-role-student"
                   style={[styles.roleBtn, role === 'STUDENT' && styles.roleBtnActive]}
                   onPress={() => setRole('STUDENT')}
                   activeOpacity={0.8}
@@ -195,6 +202,7 @@ export default function RegisterScreen() {
             </View>
 
             <TouchableOpacity
+              testID="register-submit"
               style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
               onPress={handleSubmit}
               disabled={loading}
@@ -206,7 +214,7 @@ export default function RegisterScreen() {
               }
             </TouchableOpacity>
 
-            {!!error && <Text style={styles.errorText}>{error}</Text>}
+            {!!error && <Text testID="register-error" style={styles.errorText}>{error}</Text>}
 
             <View style={styles.orRow}>
               <View style={styles.orLine} />

@@ -228,6 +228,9 @@ export default function LandingPage() {
           )}
 
           <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/(guest)' as any)}>
+              <Text style={styles.guestBtnText}>Enter Access Code</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.loginBtn} onPress={() => router.push('/(auth)/login')}>
               <Text style={styles.loginBtnText}>Login</Text>
             </TouchableOpacity>
@@ -496,6 +499,11 @@ const styles = StyleSheet.create({
   navItem: { paddingVertical: 4 },
   navText: { fontSize: 15, color: C.TEXT_SEC, fontWeight: '500' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  guestBtn: {
+    paddingHorizontal: 16, paddingVertical: 8,
+    borderRadius: 8, borderWidth: 1, borderColor: C.ACCENT,
+  },
+  guestBtnText: { color: C.ACCENT, fontWeight: '600', fontSize: 14 },
   loginBtn: {
     paddingHorizontal: 16, paddingVertical: 8,
     borderRadius: 8, borderWidth: 1, borderColor: C.BORDER,

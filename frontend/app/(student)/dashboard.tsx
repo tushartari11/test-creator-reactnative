@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -12,12 +12,15 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import type { ScrollView as ScrollViewType } from 'react-native';
 import {
   AvailableTest,
   PageResponse,
+  ReviewQuestion,
   StudentAPI,
   StudentResult,
   StudentResultsSummary,
+  TestResultDto,
 } from '../../src/lib/api';
 import { useAuth } from '../../src/lib/auth';
 import { C } from '../../src/lib/theme';
@@ -33,6 +36,18 @@ export default function StudentDashboard() {
   const [summary, setSummary] = useState<StudentResultsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [activeNav, setActiveNav] = useState<'dashboard' | 'available-tests' | 'my-results'>('dashboard');
+
+  const [selectedAttemptId, setSelectedAttemptId] = useState<number | null>(null);
+  const [modalResult, setModalResult] = useState<TestResultDto | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
+  const [modalExpanded, setModalExpanded] = useState<Set<number>>(new Set());
+
+  const scrollRef = useRef<ScrollViewType>(null);
+  const availableTestsY = useRef(0);
+  const myResultsY = useRef(0);
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -56,13 +71,27 @@ export default function StudentDashboard() {
     loadDashboard();
   }, [loadDashboard]);
 
+  useEffect(() => {
+    if (!selectedAttemptId) return;
+    setModalLoading(true);
+    setModalResult(null);
+    setModalError('');
+    setModalExpanded(new Set());
+    StudentAPI.getDetailedResult(selectedAttemptId)
+      .then(setModalResult)
+      .catch(e => setModalError((e as Error).message || 'Failed to load result.'))
+      .finally(() => setModalLoading(false));
+  }, [selectedAttemptId]);
+
+  function closeModal() {
+    setSelectedAttemptId(null);
+    setModalResult(null);
+    setModalError('');
+  }
+
   async function handleLogout() {
     await logout();
     router.replace('/(auth)/login');
-  }
-
-  function comingSoon(feature: string) {
-    Alert.alert('Coming Soon', `${feature} will be available in a future update.`);
   }
 
   function renderAvailableTest({ item: test }: { item: AvailableTest }) {
@@ -85,7 +114,7 @@ export default function StudentDashboard() {
             ) : (
               <TouchableOpacity
                 style={styles.takeBtn}
-                onPress={() => comingSoon('Take Test')}
+                onPress={() => router.push({ pathname: '/(student)/take-test', params: { testId: test.id } })}
                 activeOpacity={0.8}
               >
                 <Text style={styles.takeBtnText}>Take Test</Text>
@@ -113,7 +142,7 @@ export default function StudentDashboard() {
         {!test.alreadyAttempted && (
           <TouchableOpacity
             style={styles.takeBtn}
-            onPress={() => comingSoon('Take Test')}
+            onPress={() => router.push({ pathname: '/(student)/take-test', params: { testId: test.id } })}
             activeOpacity={0.8}
           >
             <Text style={styles.takeBtnText}>Take Test</Text>
@@ -139,7 +168,7 @@ export default function StudentDashboard() {
           <View style={styles.colAction}>
             <TouchableOpacity
               style={styles.actionBtn}
-              onPress={() => comingSoon('View Result Details')}
+              onPress={() => setSelectedAttemptId(result.attemptId)}
               activeOpacity={0.7}
             >
               <Text style={styles.actionBtnText}>Details</Text>
@@ -161,6 +190,13 @@ export default function StudentDashboard() {
           </Text>
           <Text style={styles.metaText}>{formatDate(result.submittedAt)}</Text>
         </View>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={() => setSelectedAttemptId(result.attemptId)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.actionBtnText}>Details</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -168,6 +204,10 @@ export default function StudentDashboard() {
   const passRate = summary && summary.totalAttempts > 0
     ? Math.round((summary.passCount / summary.totalAttempts) * 100)
     : 0;
+
+  const modalResultColor = modalResult?.result === 'PASS' ? C.SUCCESS : C.DANGER;
+  const modalMins = Math.floor((modalResult?.timeTakenSeconds ?? 0) / 60);
+  const modalSecs = (modalResult?.timeTakenSeconds ?? 0) % 60;
 
   return (
     <View style={styles.root}>
@@ -190,14 +230,27 @@ export default function StudentDashboard() {
         {/* Sidebar */}
         {isMedium && (
           <View style={styles.sidebar}>
-            <NavItem label="Dashboard" active />
-            <NavItem label="Available Tests" onPress={() => {}} />
-            <NavItem label="My Results" onPress={() => {}} />
+            <NavItem
+              label="Dashboard"
+              active={activeNav === 'dashboard'}
+              onPress={() => { setActiveNav('dashboard'); scrollRef.current?.scrollTo({ y: 0, animated: true }); }}
+            />
+            <NavItem
+              label="Available Tests"
+              active={activeNav === 'available-tests'}
+              onPress={() => { setActiveNav('available-tests'); scrollRef.current?.scrollTo({ y: availableTestsY.current, animated: true }); }}
+            />
+            <NavItem
+              label="My Results"
+              active={activeNav === 'my-results'}
+              onPress={() => { setActiveNav('my-results'); scrollRef.current?.scrollTo({ y: myResultsY.current, animated: true }); }}
+            />
           </View>
         )}
 
         {/* Main content */}
         <ScrollView
+          ref={scrollRef}
           style={styles.contentScroll}
           contentContainerStyle={styles.contentInner}
           showsVerticalScrollIndicator={false}
@@ -241,8 +294,10 @@ export default function StudentDashboard() {
           )}
 
           {/* Available Tests */}
-          <View style={styles.tableCard}>
-            <Text style={styles.sectionTitle}>Available Tests</Text>
+          <View style={styles.tableCard} onLayout={e => { availableTestsY.current = e.nativeEvent.layout.y; }}>
+            <View style={[styles.sectionTitleRow, activeNav === 'available-tests' && styles.sectionTitleRowActive]}>
+              <Text style={styles.sectionTitle}>Available Tests</Text>
+            </View>
 
             {isMedium && (
               <View style={[styles.tableRow, styles.tableHeaderRow]}>
@@ -275,8 +330,10 @@ export default function StudentDashboard() {
           </View>
 
           {/* Past Results */}
-          <View style={[styles.tableCard, { marginTop: 24 }]}>
-            <Text style={styles.sectionTitle}>My Results</Text>
+          <View style={[styles.tableCard, { marginTop: 24 }]} onLayout={e => { myResultsY.current = e.nativeEvent.layout.y; }}>
+            <View style={[styles.sectionTitleRow, activeNav === 'my-results' && styles.sectionTitleRowActive]}>
+              <Text style={styles.sectionTitle}>My Results</Text>
+            </View>
 
             {isMedium && (summary?.results?.length ?? 0) > 0 && (
               <View style={[styles.tableRow, styles.tableHeaderRow]}>
@@ -308,6 +365,127 @@ export default function StudentDashboard() {
           </View>
         </ScrollView>
       </View>
+
+      {/* Result details lightbox */}
+      <Modal
+        visible={selectedAttemptId !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={closeModal}
+      >
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={closeModal}>
+          <TouchableOpacity
+            style={[styles.modalCard, isMedium && styles.modalCardDesktop]}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            {/* Modal header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle} numberOfLines={1}>
+                {modalResult?.testTitle ?? 'Result Details'}
+              </Text>
+              <TouchableOpacity onPress={closeModal} style={styles.modalCloseBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.modalCloseBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Modal body */}
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollInner}
+              showsVerticalScrollIndicator={false}
+            >
+              {modalLoading && (
+                <View style={styles.modalCentered}>
+                  <ActivityIndicator color={C.ACCENT} size="large" />
+                </View>
+              )}
+
+              {!!modalError && (
+                <View style={styles.modalCentered}>
+                  <Text style={styles.modalErrorText}>{modalError}</Text>
+                  <TouchableOpacity
+                    style={styles.modalRetryBtn}
+                    onPress={() => {
+                      if (selectedAttemptId) {
+                        setModalLoading(true);
+                        setModalError('');
+                        StudentAPI.getDetailedResult(selectedAttemptId)
+                          .then(setModalResult)
+                          .catch(e => setModalError((e as Error).message || 'Failed to load result.'))
+                          .finally(() => setModalLoading(false));
+                      }
+                    }}
+                  >
+                    <Text style={styles.modalRetryBtnText}>Retry</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {modalResult && (
+                <>
+                  {/* Score hero */}
+                  <View style={styles.modalScoreHero}>
+                    <Text style={[styles.modalScoreValue, { color: modalResultColor }]}>
+                      {modalResult.score.toFixed(1)}%
+                    </Text>
+                    <View style={[styles.modalResultBadge, { borderColor: modalResultColor, backgroundColor: `${modalResultColor}22` }]}>
+                      <Text style={[styles.modalResultBadgeText, { color: modalResultColor }]}>
+                        {modalResult.result}
+                      </Text>
+                    </View>
+                    <Text style={styles.modalPassingNote}>
+                      Needed {modalResult.passingScore}% to pass
+                    </Text>
+                  </View>
+
+                  {/* Stats row */}
+                  <View style={styles.modalStatsRow}>
+                    <ResultStatBox label="Correct" value={String(modalResult.correctAnswers)} color={C.SUCCESS} />
+                    <ResultStatBox label="Wrong" value={String(modalResult.wrongAnswers)} color={C.DANGER} />
+                    <ResultStatBox label="Skipped" value={String(modalResult.skippedQuestions)} color={C.TEXT_SEC} />
+                    {modalResult.timeTakenSeconds != null && (
+                      <ResultStatBox
+                        label="Time"
+                        value={`${String(modalMins).padStart(2, '0')}:${String(modalSecs).padStart(2, '0')}`}
+                        color={C.TEXT_SEC}
+                      />
+                    )}
+                  </View>
+
+                  {modalResult.submittedAt && (
+                    <Text style={styles.modalSubmittedAt}>
+                      Submitted {formatDate(modalResult.submittedAt)}
+                    </Text>
+                  )}
+
+                  {/* Question review */}
+                  {modalResult.reviewQuestions?.length > 0 && (
+                    <View style={styles.modalReviewSection}>
+                      <Text style={styles.modalReviewTitle}>Question Review</Text>
+                      {modalResult.reviewQuestions.map(q => (
+                        <ResultReviewCard
+                          key={q.id}
+                          question={q}
+                          expanded={isMedium || modalExpanded.has(q.id)}
+                          onToggle={() => {
+                            setModalExpanded(prev => {
+                              const next = new Set(prev);
+                              next.has(q.id) ? next.delete(q.id) : next.add(q.id);
+                              return next;
+                            });
+                          }}
+                          isMedium={isMedium}
+                        />
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -327,6 +505,9 @@ function NavItem({ label, active, onPress }: { label: string; active?: boolean; 
       style={[styles.navItem, active && styles.navItemActive]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="menuitem"
+      accessibilityState={{ selected: !!active }}
+      accessibilityLabel={label}
     >
       <Text style={[styles.navItemText, active && styles.navItemTextActive]}>{label}</Text>
     </TouchableOpacity>
@@ -339,6 +520,84 @@ function ResultBadge({ result }: { result: 'PASS' | 'FAIL' }) {
     <Text style={[styles.resultBadge, { color, borderColor: color, backgroundColor: `${color}22` }]}>
       {result}
     </Text>
+  );
+}
+
+function ResultStatBox({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <View style={styles.modalStatBox}>
+      <Text style={[styles.modalStatValue, { color }]}>{value}</Text>
+      <Text style={styles.modalStatLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function ResultReviewCard({
+  question,
+  expanded,
+  onToggle,
+  isMedium,
+}: {
+  question: ReviewQuestion;
+  expanded: boolean;
+  onToggle: () => void;
+  isMedium: boolean;
+}) {
+  const correctColor = question.isCorrect ? C.SUCCESS : C.DANGER;
+  return (
+    <View style={styles.reviewCard}>
+      <TouchableOpacity
+        style={styles.reviewCardHeader}
+        onPress={isMedium ? undefined : onToggle}
+        activeOpacity={isMedium ? 1 : 0.7}
+      >
+        <View style={styles.reviewCardLeft}>
+          <Text style={[styles.correctMark, { color: correctColor }]}>
+            {question.isCorrect ? '✓' : '✗'}
+          </Text>
+          <Text style={styles.reviewQNum}>Q{question.questionNumber}</Text>
+        </View>
+        <Text style={styles.reviewQText} numberOfLines={expanded ? undefined : 2}>
+          {question.questionText}
+        </Text>
+        {!isMedium && (
+          <Text style={styles.expandChevron}>{expanded ? '▲' : '▼'}</Text>
+        )}
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={styles.reviewOptionsContainer}>
+          {question.options.map(opt => {
+            const isCorrect = opt.isCorrect;
+            const wasSelected = opt.wasSelected;
+            let bg: string = 'transparent';
+            let border: string = C.BORDER;
+            let textColor: string = C.TEXT_SEC;
+            if (isCorrect && wasSelected) { bg = `${C.SUCCESS}22`; border = C.SUCCESS; textColor = C.SUCCESS; }
+            else if (isCorrect) { border = C.SUCCESS; textColor = C.SUCCESS; }
+            else if (wasSelected) { bg = `${C.DANGER}22`; border = C.DANGER; textColor = C.DANGER; }
+
+            return (
+              <View
+                key={opt.optionNumber}
+                style={[styles.reviewOption, { backgroundColor: bg, borderColor: border }]}
+              >
+                <Text style={[styles.reviewOptionNum, { color: textColor }]}>{opt.optionNumber}.</Text>
+                <Text style={[styles.reviewOptionText, { color: textColor }]}>{opt.optionText}</Text>
+                {isCorrect && <Text style={styles.correctTag}>✓ correct</Text>}
+                {wasSelected && !isCorrect && <Text style={styles.wrongTag}>✗ your answer</Text>}
+              </View>
+            );
+          })}
+          {question.explanation ? (
+            <View style={styles.explanationBox}>
+              <Text style={styles.explanationLabel}>Explanation</Text>
+              <Text style={styles.explanationText}>{question.explanation}</Text>
+            </View>
+          ) : null}
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -406,11 +665,23 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 24,
   },
-  navItem: { paddingHorizontal: 20, paddingVertical: 12 },
+  navItem: {
+    paddingHorizontal: 17,
+    paddingVertical: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: 'transparent',
+    ...Platform.select({
+      web: { outlineStyle: 'none' } as object,
+    }),
+  },
   navItemActive: {
     backgroundColor: 'rgba(52,211,153,0.10)',
-    borderLeftWidth: 3,
     borderLeftColor: C.SUCCESS,
+  },
+  navItemFocused: {
+    ...Platform.select({
+      web: { outlineWidth: 2, outlineStyle: 'solid', outlineColor: C.ACCENT_LIGHT, outlineOffset: -2 } as object,
+    }),
   },
   navItemText: { fontSize: 14, color: C.TEXT_SEC, fontWeight: '500' },
   navItemTextActive: { color: C.TEXT },
@@ -457,14 +728,23 @@ const styles = StyleSheet.create({
     borderColor: C.BORDER,
     overflow: 'hidden',
   },
+  sectionTitleRow: {
+    borderBottomWidth: 1,
+    borderBottomColor: C.BORDER,
+    borderLeftWidth: 3,
+    borderLeftColor: 'transparent',
+  },
+  sectionTitleRowActive: {
+    backgroundColor: 'rgba(52,211,153,0.07)',
+    borderLeftColor: C.SUCCESS,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: C.TEXT,
     padding: 20,
+    paddingLeft: 17,
     paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: C.BORDER,
   },
   tableHeaderRow: {
     backgroundColor: 'rgba(255,255,255,0.03)',
@@ -538,4 +818,150 @@ const styles = StyleSheet.create({
   },
   centeredState: { padding: 40, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 14, color: C.TEXT_SEC, textAlign: 'center' },
+
+  // Modal / lightbox
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalCard: {
+    width: '100%',
+    maxHeight: '90%',
+    backgroundColor: C.ELEVATED,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: C.BORDER,
+    overflow: 'hidden',
+    ...Platform.select({
+      web: { boxShadow: '0 24px 64px rgba(0,0,0,0.6)' } as object,
+      default: { elevation: 20 },
+    }),
+  },
+  modalCardDesktop: {
+    maxWidth: 720,
+    alignSelf: 'center',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: C.BORDER,
+  },
+  modalHeaderTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: C.TEXT,
+    marginRight: 12,
+  },
+  modalCloseBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCloseBtnText: { fontSize: 13, color: C.TEXT_SEC, fontWeight: '600' },
+  modalScroll: { flexShrink: 1 },
+  modalScrollInner: { padding: 20, paddingBottom: 28 },
+  modalCentered: { padding: 40, alignItems: 'center', justifyContent: 'center', gap: 16 },
+  modalErrorText: { color: C.DANGER, fontSize: 14, textAlign: 'center' },
+  modalRetryBtn: {
+    borderWidth: 1,
+    borderColor: C.ACCENT,
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  modalRetryBtnText: { color: C.ACCENT_LIGHT, fontSize: 13, fontWeight: '600' },
+  modalScoreHero: { alignItems: 'center', marginBottom: 20 },
+  modalScoreValue: { fontSize: 52, fontWeight: '800', marginBottom: 8 },
+  modalResultBadge: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  modalResultBadgeText: { fontSize: 15, fontWeight: '700', letterSpacing: 1 },
+  modalPassingNote: { fontSize: 13, color: C.TEXT_SEC },
+  modalStatsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  modalStatBox: {
+    alignItems: 'center',
+    backgroundColor: C.BG,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: C.BORDER,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    minWidth: 64,
+  },
+  modalStatValue: { fontSize: 20, fontWeight: '700', marginBottom: 3 },
+  modalStatLabel: { fontSize: 11, color: C.TEXT_SEC },
+  modalSubmittedAt: { fontSize: 12, color: C.TEXT_SEC, textAlign: 'center', marginBottom: 20 },
+  modalReviewSection: { marginTop: 4 },
+  modalReviewTitle: { fontSize: 15, fontWeight: '600', color: C.TEXT, marginBottom: 10 },
+
+  // Review card (shared between lightbox and test-result page)
+  reviewCard: {
+    backgroundColor: C.BG,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: C.BORDER,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  reviewCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    gap: 10,
+  },
+  reviewCardLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  correctMark: { fontSize: 15, fontWeight: '700' },
+  reviewQNum: { fontSize: 12, color: C.TEXT_SEC, fontWeight: '600' },
+  reviewQText: { flex: 1, fontSize: 14, color: C.TEXT, lineHeight: 20 },
+  expandChevron: { fontSize: 12, color: C.TEXT_SEC, marginLeft: 4 },
+  reviewOptionsContainer: { paddingHorizontal: 12, paddingBottom: 12, gap: 6 },
+  reviewOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+  },
+  reviewOptionNum: { fontSize: 13, fontWeight: '600', width: 20 },
+  reviewOptionText: { flex: 1, fontSize: 13 },
+  correctTag: { fontSize: 11, color: C.SUCCESS, fontWeight: '600' },
+  wrongTag: { fontSize: 11, color: C.DANGER, fontWeight: '600' },
+  explanationBox: {
+    backgroundColor: 'rgba(99,102,241,0.08)',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(99,102,241,0.3)',
+    padding: 10,
+    marginTop: 4,
+  },
+  explanationLabel: {
+    fontSize: 11,
+    color: C.ACCENT_LIGHT,
+    fontWeight: '700',
+    marginBottom: 4,
+    textTransform: 'uppercase' as const,
+  },
+  explanationText: { fontSize: 13, color: C.TEXT_SEC, lineHeight: 18 },
 });
