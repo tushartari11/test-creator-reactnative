@@ -389,9 +389,9 @@ Requires `expo-file-system` + `expo-sharing`. The UI button will exist but the h
 The original app is served by the Spring Boot backend:
 
 ```
-http://167.71.60.139:8080/pages/login.html
-http://167.71.60.139:8080/pages/student/dashboard.html
-http://167.71.60.139:8080/pages/teacher/dashboard.html
+http://167.233.130.104:8080/pages/login.html
+http://167.233.130.104:8080/pages/student/dashboard.html
+http://167.233.130.104:8080/pages/teacher/dashboard.html
 ```
 
 ### Target (React Native / Expo dev server)
@@ -410,7 +410,7 @@ http://localhost:8081/(auth)/login
 http://localhost:8081/(auth)/register
 ```
 
-Both apps talk to the same backend (`http://167.71.60.139:8080`). You can test the same user account in both.
+Both apps talk to the same backend (`http://167.233.130.104:8080`). You can test the same user account in both.
 
 ---
 

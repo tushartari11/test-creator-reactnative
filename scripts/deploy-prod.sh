@@ -1,8 +1,8 @@
 #!/bin/bash
-# Build and deploy to production (DigitalOcean droplet)
+# Build and deploy to production (Hetzner CX23 VPS — Docker Compose only, no orchestration)
 # Usage: ./scripts/deploy-prod.sh
 #
-# This builds the app inside Docker (no Java/Maven needed on the server),
+# Runs on the VPS: builds the app inside Docker (no Java/Maven needed on the server),
 # then starts all services (PostgreSQL, Redis, App).
 
 set -e
