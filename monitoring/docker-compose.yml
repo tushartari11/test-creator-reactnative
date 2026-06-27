@@ -34,6 +34,8 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning:ro
     ports:
       - "3000:3000"
     environment:
