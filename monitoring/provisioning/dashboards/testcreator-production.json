@@ -1,0 +1,1008 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    },
+    {
+      "name": "DS_LOKI",
+      "label": "Loki",
+      "type": "datasource",
+      "pluginId": "loki",
+      "pluginName": "Loki"
+    }
+  ],
+  "__requires": [
+    { "type": "grafana",    "id": "grafana",    "name": "Grafana",     "version": "10.0.0" },
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus",  "version": "1.0.0"  },
+    { "type": "datasource", "id": "loki",       "name": "Loki",        "version": "1.0.0"  },
+    { "type": "panel",      "id": "stat",       "name": "Stat",        "version": ""       },
+    { "type": "panel",      "id": "timeseries", "name": "Time series", "version": ""       },
+    { "type": "panel",      "id": "table",      "name": "Table",       "version": ""       },
+    { "type": "panel",      "id": "logs",       "name": "Logs",        "version": ""       }
+  ],
+  "title": "TestCreator — Production Overview",
+  "uid": "testcreator-prod-v1",
+  "description": "Full-stack production dashboard — HTTP (RED), JVM (USE), HikariCP, and application logs via Loki.",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "tags": ["production", "spring-boot", "testcreator"],
+  "graphTooltip": 1,
+  "links": [],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource_prometheus",
+        "label": "Prometheus",
+        "type": "datasource",
+        "pluginId": "prometheus",
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false
+      },
+      {
+        "name": "datasource_loki",
+        "label": "Loki",
+        "type": "datasource",
+        "pluginId": "loki",
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "panels": [
+
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Overview",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false,
+      "panels": []
+    },
+
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "App Status",
+      "description": "1 = UP, 0 = DOWN. Scrape target health from Prometheus.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "color": "red",   "index": 0 },
+                "1": { "text": "UP",   "color": "green", "index": 1 }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "up{job=\"springboot-app\"}",
+          "legendFormat": "Status",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Request Rate",
+      "description": "Total HTTP requests per second across all endpoints (1m window).",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"springboot-app\"}[1m]))",
+          "legendFormat": "req/s",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "5xx Error Rate",
+      "description": "Percentage of requests returning HTTP 5xx over the last 5 minutes. Alert threshold: >1%.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red",    "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"springboot-app\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{job=\"springboot-app\"}[5m])) * 100",
+          "legendFormat": "5xx %",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "P95 Latency",
+      "description": "95th percentile HTTP response time over the last 5 minutes. Alert threshold: >500ms.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null  },
+              { "color": "yellow", "value": 0.3   },
+              { "color": "red",    "value": 0.5   }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"springboot-app\"}[5m])) by (le))",
+          "legendFormat": "P95",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "JVM Heap Usage",
+      "description": "Percentage of JVM heap currently in use. Alert threshold: >80%.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 70   },
+              { "color": "red",    "value": 85   }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(jvm_memory_used_bytes{job=\"springboot-app\",area=\"heap\"}) / sum(jvm_memory_max_bytes{job=\"springboot-app\",area=\"heap\"}) * 100",
+          "legendFormat": "Heap %",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "DB Active Connections",
+      "description": "Active HikariCP database connections. Max pool size is configured in application properties.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 8    },
+              { "color": "red",    "value": 12   }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "hikaricp_connections_active{job=\"springboot-app\"}",
+          "legendFormat": "Active",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 8,
+      "type": "row",
+      "title": "HTTP Performance  (RED: Rate · Errors · Duration)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "collapsed": false,
+      "panels": []
+    },
+
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Request Rate by HTTP Status",
+      "description": "Requests per second grouped by status code. Stacked view shows traffic composition.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": { "mode": "normal", "group": "A" }
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": "5.." }, "properties": [{ "id": "color", "value": { "fixedColor": "red",    "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": "4.." }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": "2.." }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum by (status) (rate(http_server_requests_seconds_count{job=\"springboot-app\"}[1m]))",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Response Time Percentiles (P50 / P95 / P99)",
+      "description": "Histogram-derived latency percentiles. P99 spikes signal tail latency problems.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.5 }]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{job=\"springboot-app\"}[5m])) by (le))",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"springboot-app\"}[5m])) by (le))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=\"springboot-app\"}[5m])) by (le))",
+          "legendFormat": "P99",
+          "refId": "C"
+        }
+      ]
+    },
+
+    {
+      "id": 11,
+      "type": "row",
+      "title": "HTTP Errors & Endpoint Analysis",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "collapsed": false,
+      "panels": []
+    },
+
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "HTTP 4xx / 5xx Error Rate",
+      "description": "Client errors (4xx) and server errors (5xx) as separate rates. 5xx spikes require immediate investigation.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "5xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "red",    "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "4xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"springboot-app\",status=~\"4..\"}[1m]))",
+          "legendFormat": "4xx",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"springboot-app\",status=~\"5..\"}[1m]))",
+          "legendFormat": "5xx",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "id": 13,
+      "type": "table",
+      "title": "Slowest Endpoints (P95, last 5m)",
+      "description": "Top endpoints by P95 latency. Use this to identify which URIs need optimization.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "options": {
+        "sortBy": [{ "displayName": "P95 Latency", "desc": true }],
+        "footer": { "show": false }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "displayMode": "auto" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "P95 Latency" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 },
+              { "id": "custom.displayMode", "value": "color-background" },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green",  "value": null },
+                    { "color": "yellow", "value": 0.3  },
+                    { "color": "red",    "value": 0.5  }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Rate" },
+            "properties": [{ "id": "unit", "value": "reqps" }, { "id": "decimals", "value": 3 }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "topk(10, histogram_quantile(0.95, sum by (uri, le) (rate(http_server_requests_seconds_bucket{job=\"springboot-app\"}[5m]))))",
+          "legendFormat": "{{uri}}",
+          "instant": true,
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        { "id": "organize", "options": { "renameByName": { "Value": "P95 Latency", "uri": "URI" } } }
+      ]
+    },
+
+    {
+      "id": 14,
+      "type": "row",
+      "title": "JVM  (USE: Utilization · Saturation · Errors)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "collapsed": false,
+      "panels": []
+    },
+
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Heap Memory — Used / Committed / Max",
+      "description": "Used = live objects. Committed = reserved from OS. If Used approaches Max, expect OOM or heavy GC.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Max"       }, "properties": [{ "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } }, { "id": "color", "value": { "fixedColor": "red",  "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Committed" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Used"      }, "properties": [{ "id": "color", "value": { "fixedColor": "green","mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(jvm_memory_used_bytes{job=\"springboot-app\",area=\"heap\"})",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(jvm_memory_committed_bytes{job=\"springboot-app\",area=\"heap\"})",
+          "legendFormat": "Committed",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum(jvm_memory_max_bytes{job=\"springboot-app\",area=\"heap\"})",
+          "legendFormat": "Max",
+          "refId": "C"
+        }
+      ]
+    },
+
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Non-Heap Memory (Metaspace / Code Cache)",
+      "description": "Non-heap holds class metadata, JIT-compiled code. Steady growth often signals a class-loader leak.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "sum by (id) (jvm_memory_used_bytes{job=\"springboot-app\",area=\"nonheap\"})",
+          "legendFormat": "{{id}}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "JVM Threads",
+      "description": "Live threads should be stable. A growing peak without corresponding live growth may indicate thread leaks.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "jvm_threads_live_threads{job=\"springboot-app\"}",
+          "legendFormat": "Live",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "jvm_threads_daemon_threads{job=\"springboot-app\"}",
+          "legendFormat": "Daemon",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "jvm_threads_peak_threads{job=\"springboot-app\"}",
+          "legendFormat": "Peak",
+          "refId": "C"
+        }
+      ]
+    },
+
+    {
+      "id": 18,
+      "type": "row",
+      "title": "GC & System Resources",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "collapsed": false,
+      "panels": []
+    },
+
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "GC Pause Duration (rate)",
+      "description": "Rate of time spent in GC pauses. High values mean the app is spending significant time in stop-the-world pauses.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 33 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.1 }, { "color": "red", "value": 0.3 }]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "rate(jvm_gc_pause_seconds_sum{job=\"springboot-app\"}[1m])",
+          "legendFormat": "{{action}} ({{cause}})",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "CPU Usage — Process vs System",
+      "description": "Process CPU = JVM only. System CPU = entire host. Divergence means other processes are competing.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 33 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.7 }, { "color": "red", "value": 0.9 }]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "process_cpu_usage{job=\"springboot-app\"}",
+          "legendFormat": "JVM Process",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "system_cpu_usage{job=\"springboot-app\"}",
+          "legendFormat": "System",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Process Uptime",
+      "description": "Time since the JVM process started. A recent reset indicates an unexpected restart.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 33 },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "process_uptime_seconds{job=\"springboot-app\"}",
+          "legendFormat": "Uptime",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "id": 22,
+      "type": "row",
+      "title": "Database — HikariCP Connection Pool",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+      "collapsed": false,
+      "panels": []
+    },
+
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "HikariCP Connection States",
+      "description": "Active = in use by a thread. Idle = available. Pending = waiting for a connection. Pending > 0 for sustained periods means pool exhaustion.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 42 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Pending" }, "properties": [{ "id": "color", "value": { "fixedColor": "red",    "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Active"  }, "properties": [{ "id": "color", "value": { "fixedColor": "blue",   "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Idle"    }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Max"     }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }, { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "hikaricp_connections_active{job=\"springboot-app\"}",
+          "legendFormat": "Active",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "hikaricp_connections_idle{job=\"springboot-app\"}",
+          "legendFormat": "Idle",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "hikaricp_connections_pending{job=\"springboot-app\"}",
+          "legendFormat": "Pending",
+          "refId": "C"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "hikaricp_connections_max{job=\"springboot-app\"}",
+          "legendFormat": "Max",
+          "refId": "D"
+        }
+      ]
+    },
+
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Connection Acquisition Time (P95)",
+      "description": "Time a thread waits to acquire a DB connection. High values indicate pool contention or slow queries holding connections.",
+      "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 42 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.05 }, { "color": "red", "value": 0.1 }]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "histogram_quantile(0.95, sum(rate(hikaricp_connections_acquire_seconds_bucket{job=\"springboot-app\"}[5m])) by (le))",
+          "legendFormat": "P95 Acquire",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource_prometheus}" },
+          "expr": "histogram_quantile(0.50, sum(rate(hikaricp_connections_acquire_seconds_bucket{job=\"springboot-app\"}[5m])) by (le))",
+          "legendFormat": "P50 Acquire",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "id": 25,
+      "type": "row",
+      "title": "Application Logs (Loki)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 50 },
+      "collapsed": false,
+      "panels": []
+    },
+
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Log Level Rate — ERROR / WARN / INFO",
+      "description": "Rate of log lines by severity. A spike in ERRORs without a matching spike in traffic is a strong signal of a backend fault.",
+      "datasource": { "type": "loki", "uid": "${datasource_loki}" },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 51 },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "ERROR" }, "properties": [{ "id": "color", "value": { "fixedColor": "red",    "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "WARN"  }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "INFO"  }, "properties": [{ "id": "color", "value": { "fixedColor": "green",  "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "${datasource_loki}" },
+          "expr": "sum(rate({job=\"test-creator\",environment=\"production\"} |= \"ERROR\" [1m]))",
+          "legendFormat": "ERROR",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "${datasource_loki}" },
+          "expr": "sum(rate({job=\"test-creator\",environment=\"production\"} |= \"WARN\" [1m]))",
+          "legendFormat": "WARN",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "${datasource_loki}" },
+          "expr": "sum(rate({job=\"test-creator\",environment=\"production\"} |= \"INFO\" [1m]))",
+          "legendFormat": "INFO",
+          "refId": "C"
+        }
+      ]
+    },
+
+    {
+      "id": 27,
+      "type": "logs",
+      "title": "Application Log Stream",
+      "description": "Live tail of application logs. Use the search bar to filter. Filter examples: |= \"ERROR\"  |= \"auth\"  |~ \"exception\"",
+      "datasource": { "type": "loki", "uid": "${datasource_loki}" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 57 },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "${datasource_loki}" },
+          "expr": "{job=\"test-creator\",environment=\"production\"}",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ]
+    }
+
+  ]
+}
