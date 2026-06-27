@@ -100,7 +100,8 @@ public class SecurityConfig {
             "http://localhost:4200",
             "http://localhost:5173",
             "http://localhost:8081",
-            "http://localhost:19006"));
+            "http://localhost:19006",
+            "https://167-233-130-104.sslip.io"));
     configuration.setAllowedMethods(
         Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));
